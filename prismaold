@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.0.x"]
+}
+generator studio-client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int            @id @default(autoincrement())
+  name            String
+  lastname        String
+  email           String         @unique
+  phone_number    String
+  refresh_token   String?        @unique
+  access_token    String?        @unique
+  medical_staff   MedicalStaff?
+  doctor          Doctor?
+}
+
+model MedicalStaffId {
+  id       Int     @id
+  used_by  String  @unique
+  medical_staff MedicalStaff?
+}
+
+model DoctorId {
+  id       Int     @id
+  used_by  String  @unique
+  doctor   Doctor?
+}
+
+model MedicalStaff {
+  medical_staff_id Int            @id
+  user_id          Int            @unique 
+  user             User           @relation(fields: [user_id], references: [id])
+  
+  medical_staff_id_fk MedicalStaffId @relation(fields: [medical_staff_id], references: [id])
+}
+
+model Doctor {
+  doctor_id Int     @id
+  user_id   Int     @unique 
+  user      User    @relation(fields: [user_id], references: [id])
+
+  doctor_id_fk DoctorId @relation(fields: [doctor_id], references: [id])
+}
+
