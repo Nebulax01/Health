@@ -172,6 +172,7 @@ export class AuthService {
         return tokens;
     }
     async  Loclogout(userId: number){
+        console.log(userId);
         await this.prisma.user.updateMany({
             where: {
                 id: userId,
@@ -185,5 +186,25 @@ export class AuthService {
         });
       
     }
-    async refreshToken(@Body() dto: AuthDTO){}
+    async refreshToken(userId: number, rt: string){
+        // console.log(userId);
+        // console.log(rt);
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+
+        if(!user) throw new ForbiddenException("Access Denied");
+        //console.log(user.refresh_token);
+        //const refrhash = await this.hashdata(rt);
+        //console.log(rt);
+       // console.log(refrhash);
+        const rtMatches = await bcrypt.compare(rt, user.refresh_token);
+        if(!rtMatches) throw new ForbiddenException("Access Denied");
+
+        const tokens = await this.getTokens(userId, user.email);
+        await this.updateRThash(userId, tokens.refresh_token);
+        return tokens;
+    }
 }

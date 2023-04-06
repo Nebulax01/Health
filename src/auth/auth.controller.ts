@@ -11,28 +11,28 @@ import { StaffDTO } from './dto/staffDto.dto';
 export class AuthController {
     constructor(private authService: AuthService ){}
 
-    @Post('/local/signup/user')
+    @Post('/signup/user')
     @HttpCode(HttpStatus.CREATED)
     async Locsignup(@Body() dto: SupDTO): Promise<Tokens>{
        
         const tokens = await this.authService.Locsignup(dto);
   return tokens;
     }
-    @Post('/local/signup/doctor')
+    @Post('/signup/doctor')
     @HttpCode(HttpStatus.CREATED)
     async LocsignupDoc(@Body() dto: docDTO): Promise<Tokens>{
        
         const tokens = await this.authService.LocsignupDoc(dto);
   return tokens;
     }
-    @Post('/local/signup/staff')
+    @Post('/signup/staff')
     @HttpCode(HttpStatus.CREATED)
     async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
        
         const tokens = await this.authService.LocsignupStaff(dto);
   return tokens;
     }
-    @Post('/local/signin')
+    @Post('/login')
     @HttpCode(HttpStatus.OK)
     async Locsignin(@Body() dto: AuthDTO): Promise<Tokens>{
        const tokens = await this.authService.Locsignin(dto);
@@ -48,8 +48,11 @@ export class AuthController {
         return this.authService.Loclogout(user['sub']);
 
     }
+    @UseGuards(AuthGuard('jwt-refresh'))
     @Post('/refresh')
-    refreshToken(@Body() dto: AuthDTO){
-        this.authService.refreshToken(dto)
+    refreshToken(@Req() req: Request){
+        const user = req.user;
+        console.log(user);
+        return this.authService.refreshToken(user['sub'], user['refreshToken']);
     }
 }
