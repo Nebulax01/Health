@@ -19,16 +19,21 @@ model User {
   email           String         @unique
   phone_number    String
   password        String
+  image           String?        @unique
   refresh_token   String?        @unique
   access_token    String?        @unique
-  medical_staff   MedicalStaff?
+patient_profile  PatientProfile? // One-to-one relationship between User and PatientProfile
+  
   doctor          Doctor?
 }
 
 model MedicalStaffId {
   id       Int     @id
   used_by  String  @unique
+  refresh_token   String?        @unique
+  access_token    String?        @unique
   medical_staff MedicalStaff?
+  
 }
 
 model DoctorId {
@@ -39,8 +44,8 @@ model DoctorId {
 
 model MedicalStaff {
   medical_staff_id Int            @id
-  user_id          Int            @unique 
-  user             User           @relation(fields: [user_id], references: [id])
+  refresh_token   String?        @unique
+  access_token    String?        @unique
   
   medical_staff_id_fk MedicalStaffId @relation(fields: [medical_staff_id], references: [id])
 }
@@ -51,4 +56,58 @@ model Doctor {
   user      User    @relation(fields: [user_id], references: [id])
 
   doctor_id_fk DoctorId @relation(fields: [doctor_id], references: [id])
+}
+
+model PatientProfile {
+  id              Int            @id @default(autoincrement())
+  name            String
+  lastname        String
+  birthdate       DateTime
+  gender          String
+  phone_number    String
+  email           String
+  address         String
+  emergency_contact String
+  blood_type      String
+  weight          Float
+  height          Float
+  photo           String?
+  diseases        Disease[]
+  allergies       Allergy[]
+  vaccinations    Vaccination[]
+  medications     Medication[]
+  
+  user_id         Int            @unique
+  user            User           @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
+}
+
+model Disease {
+  id           Int            @id @default(autoincrement())
+  name         String
+  patient_id   Int
+  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+}
+
+model Allergy {
+  id           Int            @id @default(autoincrement())
+  name         String
+  patient_id   Int
+  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+}
+
+model Vaccination {
+  id           Int            @id @default(autoincrement())
+  name         String
+  date         DateTime
+  patient_id   Int
+  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+}
+
+model Medication {
+  id           Int            @id @default(autoincrement())
+  name         String
+  date         DateTime
+  disease      String
+  patient_id   Int
+  patient      PatientProfile @relation(fields: [patient_id], references: [id])
 }

@@ -15,4 +15,7 @@ export class SupDTO{
     @IsNotEmpty()
     @IsString()
     phonenumber: string
+    @IsNotEmpty()
+    @IsString()
+    image: string
 }

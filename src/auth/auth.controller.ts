@@ -25,17 +25,26 @@ export class AuthController {
         const tokens = await this.authService.LocsignupDoc(dto);
   return tokens;
     }
-    @Post('/signup/staff')
-    @HttpCode(HttpStatus.CREATED)
-    async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
+//     @Post('/signup/staff')
+//     @HttpCode(HttpStatus.CREATED)
+//     async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
        
-        const tokens = await this.authService.LocsignupStaff(dto);
-  return tokens;
-    }
+//         const tokens = await this.authService.LocsignupStaff(dto);
+//   return tokens;
+//     }
     @Post('/login')
     @HttpCode(HttpStatus.OK)
     async Locsignin(@Body() dto: AuthDTO): Promise<Tokens>{
        const tokens = await this.authService.Locsignin(dto);
+        return tokens;
+    }
+    @Post('Emergency/id')
+    @HttpCode(HttpStatus.OK)
+    async EmergLogin(@Req() req: Request): Promise<Tokens>{
+       
+        
+        const tokens = await this.authService.EmergLogin(req.body['staffId'], req.body['image']);
+
         return tokens;
     }
     @UseGuards(AuthGuard('jwt'))

@@ -7,6 +7,8 @@ import { Tokens } from './types/tokens.type';
 import { SupDTO } from './dto/signupdto.dto';
 import { docDTO } from './dto/docDto.dto';
 import { StaffDTO } from './dto/staffDto.dto';
+import * as faceapi from 'face-api.js';
+
 @Injectable()
 export class AuthService {
     //initializing our services
@@ -52,16 +54,52 @@ export class AuthService {
             refresh_token: rt,
         }
     }
+    async  getStTokens(userID: number){
+        const [at, rt] = await Promise.all([
+
+        //signAsync : creates JWT tokens based on the properties we provided : sub = userid and email
+        this.jwtService.signAsync({
+            sub: userID,
+       
+            
+
+        },
+        {
+            //'at-secret' is our custom key that we used to sign the access token
+            secret: 'at-secret',
+            expiresIn: 60 * 15,
+        }
+        ),
+        this.jwtService.signAsync({
+            sub: userID,
+          
+
+        },
+        {
+            //'at-secret' is our custom key that we used to sign the refresh token
+            secret: 'rt-secret',
+            expiresIn: 60 * 60 * 24 * 7,
+        }
+        ),
+    ]);
+    //return our TOken which (2 properties at and rt)
+        return {
+            access_token: at,
+            refresh_token: rt,
+        }
+    }
     async Locsignup(@Body() dto: SupDTO): Promise<Tokens>{
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
-        //create new user having email as dto email and hash
+        
+        //console.log(dto.image);
         const newUser = this.prisma.user.create({
             data: {
               email: dto.email,
               name: dto.name,
               lastname: dto.lastname,
               phone_number: dto.phonenumber,
+              image: dto.image,
               password: hash,
             },
           });
@@ -156,6 +194,23 @@ export class AuthService {
             },
         });
     }
+    async updateRThash2(userId: number, rt: string){
+        //staff.id
+        //encrypt the refresh token
+        const hash = await this.hashdata(rt);
+        console.log(userId);
+      
+        await this.prisma.medicalStaffId.update({
+            where: {
+                id: userId,
+            },
+            data: {
+                
+                refresh_token: hash,
+            },
+        });
+    }
+
     async Locsignin(@Body() dto: AuthDTO): Promise<Tokens>{
         const user = await this.prisma.user.findFirst({
             where: {
@@ -185,6 +240,83 @@ export class AuthService {
             },
         });
       
+    }
+    async EmergLogin(staffId: string,image : string){
+        const tokens = {'access_token': null, 'refresh_token': null};
+       
+        const staff = await this.prisma.medicalStaffId.findUnique({
+            where: {
+                used_by: staffId
+            }
+        });
+        console.log(staffId)
+        const doc = await this.prisma.doctorId.findUnique({
+            
+            where: {
+                used_by: staffId
+            }
+        });
+        if((!doc || !doc.used_by) && (!staff || !staff.used_by)){
+            throw new ForbiddenException("Access Denied" );
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where:{
+                image : image
+            }
+        });
+        // Load FaceAPI models
+  // Load faceapi models
+await Promise.all([
+    faceapi.nets.faceRecognitionNet.loadFromDisk('./models'),
+    faceapi.nets.faceLandmark68Net.loadFromDisk('./models'),
+    faceapi.nets.ssdMobilenetv1.loadFromDisk('./models')
+  ]);
+  
+  // Convert user's stored image string to FaceRecognitionNetInput
+  const buffer = Buffer.from(user.image, 'base64');
+  const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
+  const faceImage = await faceapi.bufferToImage(imageBlob);
+  const faceDetection = await faceapi.detectSingleFace(faceImage).withFaceLandmarks().withFaceDescriptor();
+  
+  // Convert login image string to FaceRecognitionNetInput
+  const loginBuffer = Buffer.from(image, 'base64');
+  const loginImageBlob = new Blob([loginBuffer], { type: 'image/jpeg' });
+  const loginFaceImage = await faceapi.bufferToImage(loginImageBlob);
+  const loginFaceDetection = await faceapi.detectSingleFace(loginFaceImage).withFaceLandmarks().withFaceDescriptor();
+  
+  // Calculate face recognition similarity
+  const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
+  const similarity = faceMatcher.findBestMatch(loginFaceDetection.descriptor).distance;
+  
+  // If similarity is below a certain threshold, reject login
+  const SIMILARITY_THRESHOLD = 0.6;
+  if (similarity > SIMILARITY_THRESHOLD) {
+    throw new ForbiddenException('Access Denied');
+  }
+  
+
+   
+        if(!(!doc || !doc.used_by)){
+            console.log("slm");
+            const tokens = await this.getStTokens(doc.id);
+
+        await this.updateRThash(doc.id, tokens.refresh_token);
+        return tokens;
+        }
+        
+        if(!((!staff || !staff.used_by))){
+            console.log("slm1");
+            console.log(staff.id);
+            const tokens = await this.getStTokens(staff.id);
+
+        await this.updateRThash2(staff.id, tokens.refresh_token);
+        return tokens;
+        }
+        
+
+        return tokens;
+
     }
     async refreshToken(userId: number, rt: string){
         // console.log(userId);
