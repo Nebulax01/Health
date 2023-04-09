@@ -1,8 +1,8 @@
 import { Injectable, Req } from '@nestjs/common'; 
 import { Request } from 'express';
  import { PrismaService } from 'src/prisma/prisma.service'; 
- import { BasicInfo } from 'src/basic-u/basic-u.interface';
-import { Allergy, Disease, PatientProfile, User, Vaccination } from '@prisma/client';
+
+import { Allergy, Disease, Doctor, Medication, PatientProfile, User, Vaccination } from '@prisma/client';
 @Injectable() 
 export class ProfileService { 
     constructor(private prisma: PrismaService){ } 
@@ -54,6 +54,32 @@ export class ProfileService {
             });
 
             return patient.vaccinations;
+        }
+
+        async Doc(id: number): Promise<Doctor[]>{
+            const patient = await this.prisma.patientProfile.findUnique({
+                where:{
+                    user_id : id
+                },
+                include:{
+                    doctors: true,
+                }
+            });
+
+            return patient.doctors; 
+        }
+
+        async medications (id: number): Promise<Medication[]>{
+            const patient = await this.prisma.patientProfile.findUnique({
+                where:{
+                    user_id : id
+                },
+                include:{
+                    medications: true,
+                }
+            });
+
+            return patient.medications;
         }
         
     }

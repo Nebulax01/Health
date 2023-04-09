@@ -1,4 +1,4 @@
-export interface BasicInfo {
+export interface DocP {
     name: string;
     lastName: string;
     birthdate: Date;

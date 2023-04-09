@@ -22,9 +22,10 @@ model User {
   image           String?        @unique
   refresh_token   String?        @unique
   access_token    String?        @unique
-patient_profile  PatientProfile? // One-to-one relationship between User and PatientProfile
-  
+patient_profile   PatientProfile? // One-to-one relationship between User and PatientProfile
+  Role            UserRole       @default(PATIENT)
   doctor          Doctor?
+  
 }
 
 model MedicalStaffId {
@@ -50,37 +51,52 @@ model MedicalStaff {
   medical_staff_id_fk MedicalStaffId @relation(fields: [medical_staff_id], references: [id])
 }
 
+
+
+model PatientProfile {
+  id                 Int            @id @default(autoincrement())
+  name               String
+  lastname           String
+  birthdate          DateTime
+  gender             String
+  phone_number       String
+  email              String
+  address            String
+  emergency_contact  String
+  blood_type         String
+  weight             Float
+  height             Float
+  photo              String?
+  diseases           Disease[]
+  allergies          Allergy[]
+  vaccinations       Vaccination[]
+  medications        Medication[]
+  
+  user_id            Int            @unique
+  doctors            Doctor[]       @relation("DoctorPatient")
+  user               User           @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
+}
+
 model Doctor {
   doctor_id Int     @id
   user_id   Int     @unique 
-  specialty String  
+  
   user      User    @relation(fields: [user_id], references: [id])
 
   doctor_id_fk DoctorId @relation(fields: [doctor_id], references: [id])
+  fullName    String
+  specialty   String
+  phoneNumber String
+  address     String
+  patients    PatientProfile[] @relation("DoctorPatient")
 }
 
-model PatientProfile {
-  id              Int            @id @default(autoincrement())
-  name            String
-  lastname        String
-  birthdate       DateTime
-  gender          String
-  phone_number    String
-  email           String
-  address         String
-  emergency_contact String
-  blood_type      String
-  weight          Float
-  height          Float
-  photo           String?
-  diseases        Disease[]
-  allergies       Allergy[]
-  vaccinations    Vaccination[]
-  medications     Medication[]
-  
-  user_id         Int            @unique
-  user            User           @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
-}
+
+
+
+
+
+
 
 model Disease {
   id           Int            @id @default(autoincrement())
@@ -111,4 +127,10 @@ model Medication {
   disease      String
   patient_id   Int
   patient      PatientProfile @relation(fields: [patient_id], references: [id])
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  MEDICAL_STAFF
 }
