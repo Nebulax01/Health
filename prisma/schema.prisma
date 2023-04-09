@@ -53,6 +53,7 @@ model MedicalStaff {
 model Doctor {
   doctor_id Int     @id
   user_id   Int     @unique 
+  specialty String  
   user      User    @relation(fields: [user_id], references: [id])
 
   doctor_id_fk DoctorId @relation(fields: [doctor_id], references: [id])
