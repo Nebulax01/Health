@@ -44,4 +44,5 @@ import { Allergy, Disease, PatientProfile, Doctor } from '@prisma/client';
     async medications (@Req() req: Request): Promise<Doctor[]>{
         return await this.ProfileS.Doc(req.user['sub']);
     }
+    
 }

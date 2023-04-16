@@ -8,3 +8,5 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: nestjs  
+
+      version: "3"

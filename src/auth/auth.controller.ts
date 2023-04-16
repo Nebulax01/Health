@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { SupDTO } from './dto/signupdto.dto';
 import { docDTO } from './dto/docDto.dto';
 import { StaffDTO } from './dto/staffDto.dto';
+import { AuthDocDTO } from './dto/authodoc.dto';
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService ){}
@@ -38,6 +39,14 @@ export class AuthController {
        const tokens = await this.authService.Locsignin(dto);
         return tokens;
     }
+
+    @Post('/login/doctor')
+    @HttpCode(HttpStatus.OK)
+    async LocsigninDoc(@Body() dto: AuthDocDTO): Promise<Tokens>{
+       const tokens = await this.authService.LocsigninDoc(dto);
+        return tokens;
+    }
+    
     @Post('Emergency/id')
     @HttpCode(HttpStatus.OK)
     async EmergLogin(@Req() req: Request): Promise<Tokens>{

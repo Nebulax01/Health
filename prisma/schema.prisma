@@ -22,12 +22,10 @@ model User {
   image           String?        @unique
   refresh_token   String?        @unique
   access_token    String?        @unique
-patient_profile   PatientProfile? // One-to-one relationship between User and PatientProfile
+  patient_profile PatientProfile? // One-to-one relationship between User and PatientProfile
   Role            UserRole       @default(PATIENT)
   doctor          Doctor?
-  
 }
-
 model MedicalStaffId {
   id       Int     @id
   used_by  String  @unique
@@ -38,8 +36,8 @@ model MedicalStaffId {
 }
 
 model DoctorId {
-  id       Int     @id
-  used_by  String  @unique
+  idx Int            @id @default(autoincrement())
+  id  String  @unique
   doctor   Doctor?
 }
 
@@ -75,23 +73,24 @@ model PatientProfile {
   user_id            Int            @unique
   doctors            Doctor[]       @relation("DoctorPatient")
   user               User           @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
+ chatRooms  ChatRoom[] @relation("patientChatRooms")
 }
 
 model Doctor {
-  doctor_id Int     @id
-  user_id   Int     @unique 
-  
-  user      User    @relation(fields: [user_id], references: [id])
+  id           Int            @id @default(autoincrement())
+  doctor_id    String         @unique
+  user_id      Int            @unique
+  doctor_id_fk DoctorId       @relation(fields: [doctor_id], references: [id])
+  fullName     String?
+  specialty    String?
+  phoneNumber String?
+  address      String?
+  patients     PatientProfile[] @relation("DoctorPatient")
+  user         User           @relation(fields: [user_id], references: [id])
+  chatRooms  ChatRoom[] @relation("doctorChatRooms")
 
-  doctor_id_fk DoctorId @relation(fields: [doctor_id], references: [id])
-  fullName    String
-  specialty   String
-  phoneNumber String
-  address     String
-  patients    PatientProfile[] @relation("DoctorPatient")
+
 }
-
-
 
 
 
@@ -134,3 +133,31 @@ enum UserRole {
   DOCTOR
   MEDICAL_STAFF
 }
+
+
+model ChatRoom {
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  messages  Message[]
+  // Relation to doctors
+  doctor    Doctor     @relation("doctorChatRooms", fields: [doctorId], references: [user_id])
+  doctorId  Int
+  // Relation to patients
+  patient   PatientProfile  @relation("patientChatRooms", fields: [patientId], references: [user_id])
+  patientId Int
+}
+
+
+model Message {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  content     String
+  sender      String   // either "doctor" or "patient"
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoomId  String
+}
+
+
+

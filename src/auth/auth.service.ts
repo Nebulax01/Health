@@ -8,6 +8,8 @@ import { SupDTO } from './dto/signupdto.dto';
 import { docDTO } from './dto/docDto.dto';
 import { StaffDTO } from './dto/staffDto.dto';
 import * as faceapi from 'face-api.js';
+import { AuthDocDTO } from './dto/authodoc.dto';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +29,7 @@ export class AuthService {
         this.jwtService.signAsync({
             sub: userID,
             email,
+          
             
 
         },
@@ -67,7 +70,7 @@ export class AuthService {
         {
             //'at-secret' is our custom key that we used to sign the access token
             secret: 'at-secret',
-            expiresIn: 60 * 15,
+            expiresIn: 60 * 15 * 60 * 60,
         }
         ),
         this.jwtService.signAsync({
@@ -78,7 +81,7 @@ export class AuthService {
         {
             //'at-secret' is our custom key that we used to sign the refresh token
             secret: 'rt-secret',
-            expiresIn: 60 * 60 * 24 * 7,
+            expiresIn: 60 * 60 * 24 * 7 * 60 * 60,
         }
         ),
     ]);
@@ -121,9 +124,10 @@ export class AuthService {
         console.log(doc_id);
         const doctor = await this.prisma.doctorId.findUnique({
             where: {
-                used_by : doc_id
+                id : doc_id
             }
         });
+        console.log(doctor);
         if(!doctor || !doctor.id){
             throw new ForbiddenException("Access denied : invalid Doctor ID");
         }
@@ -132,48 +136,22 @@ export class AuthService {
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
         //create new user having email as dto email and hash
-        const newUser = this.prisma.user.create({
+        const newUser = await this.prisma.user.create({
             data: {
               email: dto.email,
               name: dto.name,
               lastname: dto.lastname,
               phone_number: dto.phonenumber,
+              Role: 'DOCTOR',
               password: hash,
             },
           });
-      
-       
-        const tokens = await this.getTokens((await newUser).id, (await newUser).email)
-        
-        await this.updateRThash((await newUser).id, tokens.refresh_token);
-       
-        return tokens;
-    }
-    async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
-        //check if staff id valid or not :
-        const staff_id = dto.staff_id;
-        const staff = await this.prisma.medicalStaffId.findUnique({
-            where: {
-                used_by : staff_id
+        const doC = await this.prisma.doctor.create({
+            data:{
+                doctor_id: dto.doctor_id,
+                user_id: newUser.id,
             }
-        });
-        if(!staff || !staff.id){
-            throw new ForbiddenException("Access denied : invalid Staff ID");
-        }
-
-        //encrypts password and store it in hash constant
-        const hash = await this.hashdata(dto.password);
-        //create new user having email as dto email and hash
-        const newUser = this.prisma.user.create({
-            data: {
-              email: dto.email,
-              name: dto.name,
-              lastname: dto.lastname,
-              phone_number: dto.phonenumber,
-              password: hash,
-            },
-          });
-      
+        })
        
         const tokens = await this.getTokens((await newUser).id, (await newUser).email)
         
@@ -181,6 +159,38 @@ export class AuthService {
        
         return tokens;
     }
+    // async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
+    //     //check if staff id valid or not :
+    //     const staff_id = dto.staff_id;
+    //     const staff = await this.prisma.medicalStaffId.findUnique({
+    //         where: {
+    //             used_by : staff_id
+    //         }
+    //     });
+    //     if(!staff || !staff.id){
+    //         throw new ForbiddenException("Access denied : invalid Staff ID");
+    //     }
+
+    //     //encrypts password and store it in hash constant
+    //     const hash = await this.hashdata(dto.password);
+    //     //create new user having email as dto email and hash
+    //     const newUser = this.prisma.user.create({
+    //         data: {
+    //           email: dto.email,
+    //           name: dto.name,
+    //           lastname: dto.lastname,
+    //           phone_number: dto.phonenumber,
+    //           password: hash,
+    //         },
+    //       });
+      
+       
+    //     const tokens = await this.getTokens((await newUser).id, (await newUser).email)
+        
+    //     await this.updateRThash((await newUser).id, tokens.refresh_token);
+       
+    //     return tokens;
+    // }
     async updateRThash(userId: number, rt: string){
         //encrypt the refresh token
         const hash = await this.hashdata(rt);
@@ -222,12 +232,35 @@ export class AuthService {
         if(!passMatches){
             throw new ForbiddenException("Access denied: wrong password");
         }
-        const tokens = await this.getTokens(user.id, user.email);
+        const tokens = await this.getTokens(user.id, user.email,);
         await this.updateRThash(user.id, tokens.refresh_token);
         return tokens;
     }
+    async LocsigninDoc(@Body() dto: AuthDocDTO):Promise<Tokens>{
+        const doc = await this.prisma.doctor.findUnique({
+            where:{
+                doctor_id: dto.id
+            }
+        });
+        if(!doc || !doc.doctor_id){
+            throw new ForbiddenException("Access denied : your doctor ID doesn't exist!");
+        }
+        const usr = await this.prisma.user.findUnique({
+            where:{
+                email: dto.email
+            }
+        });
+        if(!usr) throw new ForbiddenException("Access denied : email doesn't exist");
+        const passMatches = await bcrypt.compare(dto.password, usr.password);
+        if(!passMatches){
+            throw new ForbiddenException("Access denied: wrong password");
+        }
+        const tokens = await this.getTokens(usr.id, usr.email);
+        await this.updateRThash(usr.id, tokens.refresh_token);
+        return tokens;
+    }
     async  Loclogout(userId: number){
-        console.log(userId);
+        // console.log(userId);
         await this.prisma.user.updateMany({
             where: {
                 id: userId,
@@ -253,10 +286,10 @@ export class AuthService {
         const doc = await this.prisma.doctorId.findUnique({
             
             where: {
-                used_by: staffId
+                id: staffId
             }
         });
-        if((!doc || !doc.used_by) && (!staff || !staff.used_by)){
+        if((!doc || !doc.id) && (!staff || !staff.used_by)){
             throw new ForbiddenException("Access Denied" );
         }
 
@@ -297,11 +330,11 @@ await Promise.all([
   
 
    
-        if(!(!doc || !doc.used_by)){
+        if(!(!doc || !doc.id)){
             console.log("slm");
-            const tokens = await this.getStTokens(doc.id);
+            const tokens = await this.getStTokens(doc.idx);
 
-        await this.updateRThash(doc.id, tokens.refresh_token);
+        await this.updateRThash(doc.idx, tokens.refresh_token);
         return tokens;
         }
         

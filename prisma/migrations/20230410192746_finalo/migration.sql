@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Doctor" ALTER COLUMN "specialty" DROP NOT NULL,
+ALTER COLUMN "address" DROP NOT NULL,
+ALTER COLUMN "fullName" DROP NOT NULL,
+ALTER COLUMN "phoneNumber" DROP NOT NULL;

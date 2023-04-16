@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+import { UserRole } from "@prisma/client";
 import {ExtractJwt, Strategy} from 'passport-jwt';
 //a JWT token contains 3 parts : header, payload and signature
 //payload : contains relevant user data such as id which is encoded(base64 to format data to a convenient one for it to be easily parsed and passed through the server)
@@ -12,6 +13,7 @@ import {ExtractJwt, Strategy} from 'passport-jwt';
 
 type JwtPayload = {
     sub: string;
+  
     email : string;
 }
 
@@ -31,12 +33,10 @@ export class atStrat extends PassportStrategy(Strategy, 'jwt'){
            secretOrKey: 'at-secret',
 
         })
-      
-
         }
     
     validate(payload: JwtPayload){
-       
+        console.log(payload);
         return payload;
     }
 }
