@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Body, Injectable } from '@nestjs/common';
 import { ChatRoom, Message } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { DocPatDTO, MsgDTO } from './dto';
 @Injectable()
 export class ChatService {
     constructor(private prisma: PrismaService){}
@@ -19,7 +20,8 @@ export class ChatService {
         const chat = await this.prisma.chatRoom.findUnique({
             where:{id: id
 
-            }
+            },
+            include: {messages: true}
         });
 
         return chat
@@ -50,12 +52,12 @@ export class ChatService {
    }
 
 
-   async createMessage(chatRoomId: string, senderId: string, text: string): Promise<Message>{
+   async createMessage(@Body()dto: MsgDTO): Promise<Message>{
        const msg =  await this.prisma.message.create({
             data:{
-                chatRoomId: chatRoomId,
-                sender: senderId,
-                content: text
+                chatRoomId: dto.chatRoomId,
+                sender: dto.senderId,
+                content: dto.text
             }
         });
 
@@ -63,11 +65,11 @@ export class ChatService {
         return msg;
    }
 
-   async getMessagesForChatRoom(docId: number, patId: number): Promise<Message[]>{
-        const chat = await this.prisma.chatRoom.findMany({
+   async getMessagesForChatRoom(@Body() docpat: DocPatDTO): Promise<Message[]>{
+        const chat = await this.prisma.chatRoom.findFirst({
             where:{
-                doctorId: docId,
-                patientId: patId
+                doctorId: docpat.docId,
+                patientId: docpat.patId
             },
             include: {messages: true}
         });

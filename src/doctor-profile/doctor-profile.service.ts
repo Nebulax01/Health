@@ -39,7 +39,7 @@ export class DoctorProfileService {
 
 
 async getPatient(patientId: number): Promise<PatientProfile>{
-  const patient = this.prisma.patientProfile.findUnique({
+  const patient = await this.prisma.patientProfile.findUnique({
     where:{
       user_id: patientId
     }
@@ -95,6 +95,9 @@ async grantAccess(patientId: number, doctorId: number): Promise<void> {
     });
     await this.chat.createchatRoom(doctorId, patient.user_id);
 
+}
+async specialty (patientId: number,specialty: string): Promise<Medication[]>{
+  return await this.ProfileS.specialty(patientId, specialty);
 }
     
 

@@ -2,7 +2,7 @@ import { Injectable, Req } from '@nestjs/common';
 import { Request } from 'express';
  import { PrismaService } from 'src/prisma/prisma.service'; 
 
-import { Allergy, Disease, Doctor, Medication, PatientProfile, User, Vaccination } from '@prisma/client';
+ import { Allergy, Disease, Doctor, Medication, PatientProfile, User, Vaccination } from '@prisma/client';
 @Injectable() 
 export class ProfileService { 
     constructor(private prisma: PrismaService){ } 

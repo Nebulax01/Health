@@ -158,6 +158,3 @@ model Message {
   chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
   chatRoomId  String
 }
-
-
-
