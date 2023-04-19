@@ -1,7 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Req, UseGuards} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Req, UseGuards} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DoctorProfileService } from './doctor-profile.service';
-import { Allergy, ChatRoom, Disease, Doctor, Medication, Message, PatientProfile } from '@prisma/client';
+import { Allergy, ChatRoom, Disease, Doctor, MedicalFile, Medication, Message, PatientProfile } from '@prisma/client';
 
 
 import { Request } from 'express';
@@ -41,14 +41,20 @@ export class DoctorProfileController {
         
     }
 
-    @Post('/:id/addPatient')
-    @HttpCode(HttpStatus.OK)
+    @Get('/:id/addPatient')
+
     
-    async addPatient(@Param('id',ParseIntPipe)doctorId: number, email: string):Promise<void>{
+    async addPatient(@Param('id',ParseIntPipe)doctorId: number,@Req() req: Request):Promise<void>{
     
      // console.log(req.user['sub']);
-      await this.DocPserv.addPatient(doctorId, email);
+      await this.DocPserv.addPatient(doctorId, req.body['email']);
   }
+    @Post('/deletePatient')
+    async deletePatient(@Body() docpat: DocPatDTO){
+        console.log(docpat.docId)
+        console.log(docpat.patId)
+        await this.DocPserv.deletePatient(docpat.docId, docpat.patId)
+    }
 
   @Post('chatRooms')
     @HttpCode(HttpStatus.OK)
@@ -62,6 +68,14 @@ export class DoctorProfileController {
     
     async getMessagesForChatRoom(@Body() docpat: DocPatDTO): Promise<Message[]>{
         return await this.chat.getMessagesForChatRoom(docpat);
+        
+    }
+
+    @Post('patients')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard('jwt'))
+    async  getDocPatients(@Req() req: Request): Promise<PatientProfile[]>{
+       return await this.DocPserv. getDocPatients(req.user['sub']);
         
     }
 
@@ -93,11 +107,20 @@ export class DoctorProfileController {
           return await this.ProfileS.medications(patientId);
       }
 
-      @Post('patients/:id/specialties/:specialty')
+
+      @Get('patients/:id/MedicalFiles/:name')
       @HttpCode(HttpStatus.OK)
-    
-      async specialty (@Param('id', ParseIntPipe) patientId: number, @Param('specialty') specialty: string): Promise<Medication[]>{
-          return await this.ProfileS.specialty(patientId, specialty);
+      @UseGuards(AuthGuard('jwt'))
+      async getMedicalFiles(@Req() req: Request, @Param('id', ParseIntPipe) patientId: number, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
+        return await this.DocPserv.getMedicalFiles(req.user['sub'], patientId, specialtyName)
+
       }
+
+    //   @Post('patients/:id/specialties/:specialty')
+    //   @HttpCode(HttpStatus.OK)
+    
+    //   async specialty (@Param('id', ParseIntPipe) patientId: number, @Param('specialty') specialty: string): Promise<Medication[]>{
+    //       return await this.ProfileS.specialty(patientId, specialty);
+    //   }
     
 }

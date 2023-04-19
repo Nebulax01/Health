@@ -74,6 +74,7 @@ model PatientProfile {
   doctors            Doctor[]       @relation("DoctorPatient")
   user               User           @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
  chatRooms  ChatRoom[] @relation("patientChatRooms")
+ medicalFile MedicalFile?
 }
 
 model Doctor {
@@ -157,4 +158,19 @@ model Message {
   sender      String   // either "doctor" or "patient"
   chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
   chatRoomId  String
+}
+
+
+
+
+
+
+model MedicalFile {
+  id         Int            @id @default(autoincrement())
+  name       String
+  url        String
+
+  specialtyName String
+  patientId   Int @unique 
+   patient              PatientProfile          @relation(fields: [patientId], references: [user_id])         
 }

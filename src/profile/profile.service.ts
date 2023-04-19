@@ -1,8 +1,8 @@
-import { Injectable, Req } from '@nestjs/common'; 
+import { BadRequestException, Injectable, NotFoundException, Req } from '@nestjs/common'; 
 import { Request } from 'express';
  import { PrismaService } from 'src/prisma/prisma.service'; 
 
- import { Allergy, Disease, Doctor, Medication, PatientProfile, User, Vaccination } from '@prisma/client';
+ import { Allergy, Disease, Doctor, Medication, PatientProfile,User, Vaccination } from '@prisma/client';
 @Injectable() 
 export class ProfileService { 
     constructor(private prisma: PrismaService){ } 
@@ -82,4 +82,15 @@ export class ProfileService {
             return patient.medications;
         }
         
+       
+          async getMedicalFilesForPatientAndSpecialty(patientId: number, specialtyName: string) {
+            
+            const medicalFiles = await this.prisma.medicalFile.findMany({
+              where: {
+                patientId: patientId,
+                specialtyName: specialtyName
+              },
+            });
+            return medicalFiles;
+          }
     }

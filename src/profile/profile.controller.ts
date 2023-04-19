@@ -1,7 +1,7 @@
-import { Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
  import { AuthGuard } from '@nestjs/passport'; import { Request } from 'express'; 
 import { ProfileService } from './profile.service';
-import { Allergy, Disease, PatientProfile, Doctor } from '@prisma/client';
+import { Allergy, Disease, PatientProfile, Doctor, MedicalFile } from '@prisma/client';
 
 
 
@@ -44,5 +44,12 @@ import { Allergy, Disease, PatientProfile, Doctor } from '@prisma/client';
     async medications (@Req() req: Request): Promise<Doctor[]>{
         return await this.ProfileS.Doc(req.user['sub']);
     }
-    
+
+    @Post('MedicalFiles/:name')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard('jwt')) 
+    async specialties (@Req() req: Request, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
+        return await this.ProfileS.getMedicalFilesForPatientAndSpecialty(req.user['sub'], specialtyName);
+    }
+
 }
