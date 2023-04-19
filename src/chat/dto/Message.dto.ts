@@ -1,5 +1,7 @@
+import { IsNotEmpty, IsString } from "class-validator";
+
 export class MsgDTO{
-  chatRoomId: string
-  senderId: string
+  @IsString()
+  @IsNotEmpty()
   text: string
 }

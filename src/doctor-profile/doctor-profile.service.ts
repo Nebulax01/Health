@@ -1,9 +1,13 @@
 import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 
-import { Doctor, MedicalFile, PatientProfile } from '@prisma/client';
+import { Doctor, MedicalFile, Medication, PatientProfile } from '@prisma/client';
 import { AuthService } from 'src/auth/auth.service';
 import { ChatService } from 'src/chat/chat.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { MedicFDTO } from './dtos/medicalF.dto';
+import { MedicaDTO, VaccDTO } from './dtos';
+import { docDTO } from 'src/auth/dto/docDto.dto';
+import { PatDTO } from './dtos/pat.dto';
 
 @Injectable()
 export class DoctorProfileService {
@@ -125,6 +129,93 @@ async getPatient(patientId: number): Promise<PatientProfile>{
     await this.chat.createchatRoom(doctorId, patient.user_id);
 
 }
+async addmedications (patientId: number, dto: MedicaDTO): Promise<void>{
+  
+  await this.prisma.medication.create({
+    data:{
+      name: dto.name,
+      disease: dto.disease,
+      date: dto.date,
+      patient_id: patientId
+    }
+  })
+
+
+}
+async editBasic( dto: docDTO,doctorId: number){
+      await this.prisma.doctor.update({
+        where:{
+          user_id: doctorId
+        },
+        data: {
+          name: dto.name,
+          lastname: dto.lastname,
+          
+          phoneNumber: dto.phonenumber,
+          
+          
+          
+          
+        }
+      })
+}
+async editBasicPat( dto: PatDTO,patientId: number){
+  await this.prisma.patientProfile.update({
+    where:{
+      user_id: patientId
+    },
+    data: {
+      weight: dto.weight,
+      height: dto.height,
+      
+
+      
+      
+      
+      
+    }
+  })
+}
+
+async addallergy (patientId: number, name: string): Promise<void>{
+
+  await this.prisma.allergy.create({
+    data:{
+      name: name,
+     
+    
+      patient_id: patientId
+    }
+  })
+
+
+}
+
+async adddisease (patientId: number, name: string): Promise<void>{
+
+  await this.prisma.disease.create({
+    data:{
+      name: name,
+      patient_id: patientId
+    }
+  })
+
+
+}
+
+async addvaccination (patientId: number, dto: VaccDTO): Promise<void>{
+
+  await this.prisma.vaccination.create({
+    data:{
+      name: dto.name,
+     
+      date: dto.date,
+      patient_id: patientId
+    }
+  })
+
+
+}
 async getMedicalFiles(doctorId: number, patientId: number, specialtyName: string): Promise<MedicalFile[]>{
 
   const Doc = await this.prisma.doctor.findUnique({
@@ -146,17 +237,29 @@ async getMedicalFiles(doctorId: number, patientId: number, specialtyName: string
 
 }
 
-async addMedicalFiles(doctorId: number, patientId: number, specialtyName: string, url: string){
-  
+async addMedicalFiles(doctorId: number, patientId: number, dto: MedicFDTO){
+
   const Doc = await this.prisma.doctor.findUnique({
     where:{
       user_id: doctorId
     }
   });
 
-  if(Doc.specialty !== specialtyName){
-    throw new UnauthorizedException('you are not allowed to view this information');
+  if(Doc.specialty !== dto.specialtyName){
+    throw new UnauthorizedException('you are not allowed to update information');
+
   }
+  await this.prisma.medicalFile.create({
+   
+     
+  
+    data:{
+      patientId: patientId,
+      specialtyName: dto.specialtyName,
+      url: dto.url,
+      name: dto.name
+    }
+  })
 }
     
 

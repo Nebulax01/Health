@@ -1,4 +1,4 @@
-import { Controller,Post, Body, HttpCode, Header, HttpStatus, UseGuards, Req} from '@nestjs/common';
+import { Controller,Post, Body, HttpCode, Header, HttpStatus, UseGuards, Req, ValidationPipe} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto';
 import { Tokens } from './types/tokens.type';
@@ -21,7 +21,7 @@ export class AuthController {
     }
     @Post('/signup/doctor')
     @HttpCode(HttpStatus.CREATED)
-    async LocsignupDoc(@Body() dto: docDTO): Promise<Tokens>{
+    async LocsignupDoc(@Body(ValidationPipe) dto: docDTO): Promise<Tokens>{
        
         const tokens = await this.authService.LocsignupDoc(dto);
   return tokens;
@@ -35,14 +35,14 @@ export class AuthController {
 //     }
     @Post('/login')
     @HttpCode(HttpStatus.OK)
-    async Locsignin(@Body() dto: AuthDTO): Promise<Tokens>{
+    async Locsignin(@Body(ValidationPipe) dto: AuthDTO): Promise<Tokens>{
        const tokens = await this.authService.Locsignin(dto);
         return tokens;
     }
 
     @Post('/login/doctor')
     @HttpCode(HttpStatus.OK)
-    async LocsigninDoc(@Body() dto: AuthDocDTO): Promise<Tokens>{
+    async LocsigninDoc(@Body(ValidationPipe) dto: AuthDocDTO): Promise<Tokens>{
        const tokens = await this.authService.LocsigninDoc(dto);
         return tokens;
     }

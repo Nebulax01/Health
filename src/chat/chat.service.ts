@@ -52,11 +52,11 @@ export class ChatService {
    }
 
 
-   async createMessage(@Body()dto: MsgDTO): Promise<Message>{
+   async createMessage(senderId: string, chatRoomId: string, @Body()dto: MsgDTO): Promise<Message>{
        const msg =  await this.prisma.message.create({
             data:{
-                chatRoomId: dto.chatRoomId,
-                sender: dto.senderId,
+                chatRoomId: chatRoomId,
+                sender: senderId,
                 content: dto.text
             }
         });
@@ -65,16 +65,26 @@ export class ChatService {
         return msg;
    }
 
-   async getMessagesForChatRoom(@Body() docpat: DocPatDTO): Promise<Message[]>{
+   async getMessagesForChatRoom(doctorId: number, patientId: number ): Promise<Message[]>{
         const chat = await this.prisma.chatRoom.findFirst({
             where:{
-                doctorId: docpat.docId,
-                patientId: docpat.patId
+                doctorId: doctorId,
+                patientId: patientId
             },
             include: {messages: true}
         });
-
-
+        const chat2 = await this.prisma.chatRoom.findFirst({
+            where:{
+                doctorId: doctorId,
+                patientId: patientId
+            },
+            include: {messages: true}
+        });
+        console.log(doctorId)
+        console.log(patientId)
+        if(chat)
         return chat.messages;
+        if(chat2)
+        return chat2.messages;
    }
 }

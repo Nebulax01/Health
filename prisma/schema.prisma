@@ -82,7 +82,8 @@ model Doctor {
   doctor_id    String         @unique
   user_id      Int            @unique
   doctor_id_fk DoctorId       @relation(fields: [doctor_id], references: [id])
-  fullName     String?
+  name     String?
+  lastname String?
   specialty    String?
   phoneNumber String?
   address      String?
@@ -102,14 +103,14 @@ model Disease {
   id           Int            @id @default(autoincrement())
   name         String
   patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 model Allergy {
   id           Int            @id @default(autoincrement())
   name         String
   patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 model Vaccination {
@@ -117,7 +118,7 @@ model Vaccination {
   name         String
   date         DateTime
   patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 model Medication {
@@ -126,7 +127,7 @@ model Medication {
   date         DateTime
   disease      String
   patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [id])
+  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 enum UserRole {
