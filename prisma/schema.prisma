@@ -85,6 +85,7 @@ model Doctor {
   name     String?
   lastname String?
   specialty    String?
+  email       String?
   phoneNumber String?
   address      String?
   patients     PatientProfile[] @relation("DoctorPatient")

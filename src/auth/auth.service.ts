@@ -10,6 +10,9 @@ import { StaffDTO } from './dto/staffDto.dto';
 import * as faceapi from 'face-api.js';
 import { AuthDocDTO } from './dto/authodoc.dto';
 import { UserRole } from '@prisma/client';
+import { patFDTO } from './dto/patF.dt';
+import { docFDTO } from './dto/docF.dto';
+import { identity } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -91,6 +94,27 @@ export class AuthService {
             refresh_token: rt,
         }
     }
+    async LocpatientForm(dto: patFDTO, id:number){
+        console.log(id);
+        await this.prisma.patientProfile.create({
+            
+            data:{
+                user_id: id,
+                height: dto.height,
+                address: dto.adress,
+                email: dto.email,
+                weight: dto.weight,
+                blood_type: dto.bloodtype,
+                birthdate: dto.birthdate,
+                emergency_contact: dto.emergency,
+                gender: dto.gender,
+                name: dto.name,
+                lastname: dto.lastname,
+                phone_number: dto.phonenumber
+
+            }
+        })
+    }
     async Locsignup(@Body() dto: SupDTO): Promise<Tokens>{
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
@@ -106,6 +130,7 @@ export class AuthService {
               password: hash,
             },
           });
+    
         //create a token object (refresh and access tokens) using the getTokens method 
         const tokens = await this.getTokens((await newUser).id, (await newUser).email)
         //update the refresh token in the user table after having it hashed
@@ -191,6 +216,21 @@ export class AuthService {
        
     //     return tokens;
     // }
+    async LocdoctorForm(dto: docFDTO, id: number){
+        await this.prisma.doctor.update({
+            where:{
+                user_id: id
+            },
+            data:{
+                name: dto.name,
+                lastname: dto.lastname,
+                specialty: dto.specialty,
+                phoneNumber: dto.phonenumber,
+                address: dto.address,
+                email: dto.email
+            }
+        })
+    }
     async updateRThash(userId: number, rt: string){
         //encrypt the refresh token
         const hash = await this.hashdata(rt);
