@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
  import { AuthGuard } from '@nestjs/passport'; import { Request } from 'express'; 
 import { ProfileService } from './profile.service';
-import { Allergy, Disease, PatientProfile, Doctor, MedicalFile, ChatRoom, Message } from '@prisma/client';
+import { Allergy, Disease, PatientProfile, Doctor, MedicalFile, ChatRoom, Message, Medication } from '@prisma/client';
 import { ChatService } from 'src/chat/chat.service';
 import { MsgDTO } from 'src/chat/dto';
 
@@ -14,26 +14,31 @@ import { MsgDTO } from 'src/chat/dto';
 
     // profile: 
     
-  @Post('/:id/basic-info') 
+  @Get('/:id/basic-info') 
   @HttpCode(HttpStatus.OK)
  
    async Basic_info(@Param('id', ParseIntPipe) patientId: number): Promise<PatientProfile>{ 
         return await this.ProfileS.BasicP(patientId); 
     } 
 
-    @Post('/:id/diseases')
+    @Get('/:id/diseases')
     @HttpCode(HttpStatus.OK)
     
-    async diseases(@Param('id') patientId: number) : Promise<Disease[]>{
+    async diseases(@Param('id', ParseIntPipe) patientId: number) : Promise<Disease[]>{
         return await this.ProfileS.diseases(patientId);
     }
-    @Post('/:id/allergies')
+    @Get('/:id/allergies')
     @HttpCode(HttpStatus.OK)
     
-    async allergies(@Param('id') patientId: number) : Promise<Allergy[]>{
+    async allergies(@Param('id',ParseIntPipe) patientId: number) : Promise<Allergy[]>{
         return await this.ProfileS.allergies(patientId);
     }
-
+    @Get('/:id/vaccinations')
+    @HttpCode(HttpStatus.OK)
+    
+    async vaccinations(@Param('id',ParseIntPipe) patientId: number) : Promise<Allergy[]>{
+        return await this.ProfileS.vaccinations(patientId);
+    }
     @Post('/:id/doctors')
     @HttpCode(HttpStatus.OK)
    
@@ -41,17 +46,17 @@ import { MsgDTO } from 'src/chat/dto';
         return await this.ProfileS.Doc(patientId);
     }
 
-    @Post('/:id/medications')
+    @Get('/:id/medications')
     @HttpCode(HttpStatus.OK)
     
-    async medications (@Param('id') patientId: number): Promise<Doctor[]>{
-        return await this.ProfileS.Doc(patientId);
+    async medications (@Param('id', ParseIntPipe) patientId: number): Promise<Medication[]>{
+        return await this.ProfileS.medications(patientId);
     }
  
     @Get('/:id/specialties/:name/MedicalFiles')
     @HttpCode(HttpStatus.OK)
     
-    async getMedicalFiles (@Param('id') patientId: number, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
+    async getMedicalFiles (@Param('id', ParseIntPipe) patientId: number, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
         return await this.ProfileS.getMedicalFilesForPatientAndSpecialty(patientId, specialtyName);
     }
     //chat: 

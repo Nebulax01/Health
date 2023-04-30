@@ -249,17 +249,16 @@ async addMedicalFiles(doctorId: number, patientId: number, dto: MedicFDTO){
     throw new UnauthorizedException('you are not allowed to update information');
 
   }
-  await this.prisma.medicalFile.create({
+  // await this.prisma.medicalFile.create({
    
      
   
-    data:{
-      patientId: patientId,
-      specialtyName: dto.specialtyName,
-      url: dto.url,
-      name: dto.name
-    }
-  })
+  //   data:{
+  //     patientId: patientId,
+  //     specialtyName: dto.specialtyName,
+      
+  //   }
+  // })
 }
     
 

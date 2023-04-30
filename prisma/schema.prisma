@@ -1,7 +1,8 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.0.x"]
 }
+
 generator studio-client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
@@ -13,122 +14,113 @@ datasource db {
 }
 
 model User {
-  id              Int            @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   name            String
   lastname        String
-  email           String         @unique
+  email           String          @unique
   phone_number    String
   password        String
-  image           String?        @unique
-  refresh_token   String?        @unique
-  access_token    String?        @unique
+  image           String?         @unique
+  refresh_token   String?         @unique
+  access_token    String?         @unique
   patient_profile PatientProfile? // One-to-one relationship between User and PatientProfile
-  Role            UserRole       @default(PATIENT)
+  Role            UserRole        @default(PATIENT)
   doctor          Doctor?
 }
+
 model MedicalStaffId {
-  id       Int     @id
-  used_by  String  @unique
-  refresh_token   String?        @unique
-  access_token    String?        @unique
+  id            Int           @id
+  used_by       String        @unique
+  refresh_token String?       @unique
+  access_token  String?       @unique
   medical_staff MedicalStaff?
-  
 }
 
 model DoctorId {
-  idx Int            @id @default(autoincrement())
-  id  String  @unique
-  doctor   Doctor?
+  idx    Int     @id @default(autoincrement())
+  id     String  @unique
+  doctor Doctor?
 }
 
 model MedicalStaff {
-  medical_staff_id Int            @id
-  refresh_token   String?        @unique
-  access_token    String?        @unique
-  
+  medical_staff_id Int     @id
+  refresh_token    String? @unique
+  access_token     String? @unique
+
   medical_staff_id_fk MedicalStaffId @relation(fields: [medical_staff_id], references: [id])
 }
 
-
-
 model PatientProfile {
-  id                 Int            @id @default(autoincrement())
-  name               String?
-  lastname           String?
-  birthdate          DateTime?
-  gender             String?
-  phone_number       String?
-  email              String?
-  address            String?
-  emergency_contact  String?
-  blood_type         String?
-  weight             Float?
-  height             Float?
-  photo              String?
-  diseases           Disease[]
-  allergies          Allergy[]
-  vaccinations       Vaccination[]
-  medications        Medication[]
-  
-  user_id            Int            @unique
-  doctors            Doctor[]       @relation("DoctorPatient")
-  user               User           @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
- chatRooms  ChatRoom[] @relation("patientChatRooms")
- medicalFile MedicalFile?
+  id                Int           @id @default(autoincrement())
+  name              String?
+  lastname          String?
+  birthdate         DateTime?
+  gender            String?
+  phone_number      String?
+  email             String?
+  address           String?
+  emergency_contact String?
+  blood_type        String?
+  weight            Float?
+  height            Float?
+  photo             String?
+  diseases          Disease[]
+  allergies         Allergy[]
+  vaccinations      Vaccination[]
+  medications       Medication[]
+
+  user_id      Int           @unique
+  doctors      Doctor[]      @relation("DoctorPatient")
+  user         User          @relation(fields: [user_id], references: [id]) // One-to-one relationship between User and PatientProfile
+  chatRooms    ChatRoom[]    @relation("patientChatRooms")
+  medicalFiles MedicalFile[] @relation("MedicalFileToPatientProfile")
 }
 
 model Doctor {
-  id           Int            @id @default(autoincrement())
-  doctor_id    String         @unique
-  user_id      Int            @unique
-  doctor_id_fk DoctorId       @relation(fields: [doctor_id], references: [id])
-  name     String?
-  lastname String?
+  id           Int              @id @default(autoincrement())
+  doctor_id    String           @unique
+  user_id      Int              @unique
+  doctor_id_fk DoctorId         @relation(fields: [doctor_id], references: [id])
+  name         String?
+  lastname     String?
   specialty    String?
-  email       String?
-  phoneNumber String?
+  email        String?
+  phoneNumber  String?
   address      String?
   patients     PatientProfile[] @relation("DoctorPatient")
-  user         User           @relation(fields: [user_id], references: [id])
-  chatRooms  ChatRoom[] @relation("doctorChatRooms")
-
-
+  user         User             @relation(fields: [user_id], references: [id])
+  chatRooms    ChatRoom[]       @relation("doctorChatRooms")
 }
 
-
-
-
-
-
 model Disease {
-  id           Int            @id @default(autoincrement())
-  name         String
-  patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
+  id         Int            @id @default(autoincrement())
+  name       String
+  patient_id Int
+  patient    PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 model Allergy {
-  id           Int            @id @default(autoincrement())
-  name         String
-  patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
+  id         Int            @id @default(autoincrement())
+  name       String
+  patient_id Int
+  patient    PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 model Vaccination {
-  id           Int            @id @default(autoincrement())
-  name         String
-  date         DateTime
-  patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
+  id         Int            @id @default(autoincrement())
+  name       String
+  date       DateTime
+  patient_id Int
+  patient    PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 model Medication {
-  id           Int            @id @default(autoincrement())
-  name         String
-  date         DateTime
-  disease      String
-  patient_id   Int
-  patient      PatientProfile @relation(fields: [patient_id], references: [user_id])
+  id         Int            @id @default(autoincrement())
+  name       String
+  date       DateTime
+  disease    String
+  patient_id Int
+  patient    PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
 
 enum UserRole {
@@ -137,42 +129,35 @@ enum UserRole {
   MEDICAL_STAFF
 }
 
-
 model ChatRoom {
-  id        String     @id @default(uuid())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id        String         @id @default(uuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
   messages  Message[]
   // Relation to doctors
-  doctor    Doctor     @relation("doctorChatRooms", fields: [doctorId], references: [user_id])
+  doctor    Doctor         @relation("doctorChatRooms", fields: [doctorId], references: [user_id])
   doctorId  Int
   // Relation to patients
-  patient   PatientProfile  @relation("patientChatRooms", fields: [patientId], references: [user_id])
+  patient   PatientProfile @relation("patientChatRooms", fields: [patientId], references: [user_id])
   patientId Int
 }
 
-
 model Message {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  content     String
-  sender      String   // either "doctor" or "patient"
-  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
-  chatRoomId  String
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  content    String
+  sender     String // either "doctor" or "patient"
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoomId String
 }
 
-
-
-
-
-
 model MedicalFile {
-  id         Int            @id @default(autoincrement())
-  name       String
-  url        String
-
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String
+  date          DateTime?
   specialtyName String
-  patientId   Int @unique 
-   patient              PatientProfile          @relation(fields: [patientId], references: [user_id])         
+  patientId     Int
+  patient       PatientProfile @relation("MedicalFileToPatientProfile", fields: [patientId], references: [user_id])
 }

@@ -19,7 +19,6 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "download-models": "node node_modules/face-api.js/examples/examples-nodejs/weights/download.js"
-
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -27,7 +26,7 @@
     "@nestjs/jwt": "^10.0.3",
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.0.0",
-    "@prisma/client": "^4.12.0",
+    "@prisma/client": "^4.13.0",
     "@tensorflow/tfjs-node": "^4.4.0",
     "bcrypt": "^5.1.0",
     "canvas": "^2.11.2",

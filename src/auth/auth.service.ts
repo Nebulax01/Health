@@ -202,6 +202,15 @@ export class AuthService {
         return !!user;
       }
 
+      async checkId(id: number): Promise<boolean>{
+        const user = await this.prisma.user.findFirst({
+            where:{
+                id: id
+            }
+        });
+        return (user.Role === "DOCTOR")
+    }
+
     // async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
     //     //check if staff id valid or not :
     //     const staff_id = dto.staff_id;
@@ -355,9 +364,9 @@ export class AuthService {
        
         // Load faceapi models
         await Promise.all([
-          faceapi.nets.faceRecognitionNet.loadFromDisk('./models'),
-          faceapi.nets.faceLandmark68Net.loadFromDisk('./models'),
-          faceapi.nets.ssdMobilenetv1.loadFromDisk('./models'),
+          faceapi.nets.faceRecognitionNet.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceRecognitionNet'),
+          faceapi.nets.faceLandmark68Net.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceLandmark68Net'),
+          faceapi.nets.ssdMobilenetv1.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/ssdMobilenetv1'),
         ]);
     
         // Convert login image string to FaceRecognitionNetInput

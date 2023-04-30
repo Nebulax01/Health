@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException, Req } from '@nestjs
 import { Request } from 'express';
  import { PrismaService } from 'src/prisma/prisma.service'; 
 
- import { Allergy, Disease, Doctor, Medication, PatientProfile,User, Vaccination } from '@prisma/client';
+ import { Allergy, Disease, Doctor, MedicalFile, Medication, PatientProfile,User, Vaccination } from '@prisma/client';
 @Injectable() 
 export class ProfileService { 
     constructor(private prisma: PrismaService){ } 
@@ -32,7 +32,7 @@ export class ProfileService {
             return patient.diseases;
         }
         async allergies (id: number): Promise<Allergy[]>{
-            const patient = await this.prisma.patientProfile.findUnique({
+            const patient = await this.prisma.patientProfile.findFirst({
                 where:{
                     user_id : id
                 },
@@ -83,14 +83,16 @@ export class ProfileService {
         }
         
        
-          async getMedicalFilesForPatientAndSpecialty(patientId: number, specialtyName: string) {
-            
+        async getMedicalFilesForPatientAndSpecialty(patientId: number, specialtyName: string): Promise<MedicalFile[]> {
             const medicalFiles = await this.prisma.medicalFile.findMany({
               where: {
-                patientId: patientId,
-                specialtyName: specialtyName
+                AND: [
+                  { patientId: patientId },
+                  { specialtyName: specialtyName },
+                ],
               },
             });
             return medicalFiles;
           }
+          
     }

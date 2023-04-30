@@ -19,6 +19,13 @@ async checkDocEmail(@Param('email') email: string) {
   const emailExists = await this.authService.checkDocEmail(email);
   return { exists: emailExists };
 }
+    @Get('check/:id')
+    @HttpCode(HttpStatus.OK)
+    async checkId(@Param('id', ParseIntPipe) id: number): Promise<Boolean>{
+        return  await this.authService.checkId(id);
+       
+
+    }
     @Post('/signup/user/patientform/:id')
     @HttpCode(HttpStatus.OK)
     async LocpatientForm(@Body(ValidationPipe) dto: patFDTO, @Param('id', ParseIntPipe) id: number){
@@ -91,6 +98,7 @@ async checkDocEmail(@Param('email') email: string) {
         return this.authService.Loclogout(user['sub']);
 
     }
+
     @UseGuards(AuthGuard('jwt-refresh'))
     @Post('/refresh')
     refreshToken(@Req() req: Request){
