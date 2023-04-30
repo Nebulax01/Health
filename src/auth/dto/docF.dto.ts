@@ -5,5 +5,5 @@ export class docFDTO{
     phonenumber: string
     address: string
     email: string
-
+    
 }

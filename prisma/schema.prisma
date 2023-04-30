@@ -53,17 +53,17 @@ model MedicalStaff {
 
 model PatientProfile {
   id                 Int            @id @default(autoincrement())
-  name               String
-  lastname           String
-  birthdate          DateTime
-  gender             String
-  phone_number       String
-  email              String
-  address            String
-  emergency_contact  String
-  blood_type         String
-  weight             Float
-  height             Float
+  name               String?
+  lastname           String?
+  birthdate          DateTime?
+  gender             String?
+  phone_number       String?
+  email              String?
+  address            String?
+  emergency_contact  String?
+  blood_type         String?
+  weight             Float?
+  height             Float?
   photo              String?
   diseases           Disease[]
   allergies          Allergy[]

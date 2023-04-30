@@ -25,7 +25,7 @@ export class DoctorProfileController {
     @HttpCode(HttpStatus.OK)
     
     async getDocBinfo(@Param('id', ParseIntPipe)doctorId: number): Promise<Doctor>{
-      
+        console.log("asleme")
         return await this.DocPserv.getDocBinfo(doctorId);
     }
 

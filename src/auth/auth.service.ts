@@ -1,4 +1,4 @@
-import { Injectable, Body, ForbiddenException } from '@nestjs/common';
+import { Injectable, Body, ForbiddenException, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
 import { AuthDTO } from './dto/auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -96,10 +96,13 @@ export class AuthService {
     }
     async LocpatientForm(dto: patFDTO, id:number){
         console.log(id);
-        await this.prisma.patientProfile.create({
-            
-            data:{
+        await this.prisma.patientProfile.update({
+            where:{
                 user_id: id,
+            },
+            data:{
+                
+                
                 height: dto.height,
                 address: dto.adress,
                 email: dto.email,
@@ -120,7 +123,7 @@ export class AuthService {
         const hash = await this.hashdata(dto.password);
         
         //console.log(dto.image);
-        const newUser = this.prisma.user.create({
+        const newUser = await this.prisma.user.create({
             data: {
               email: dto.email,
               name: dto.name,
@@ -130,7 +133,11 @@ export class AuthService {
               password: hash,
             },
           });
-    
+          await this.prisma.patientProfile.create({
+            data:{
+                user_id: newUser.id
+            },
+          })
         //create a token object (refresh and access tokens) using the getTokens method 
         const tokens = await this.getTokens((await newUser).id, (await newUser).email)
         //update the refresh token in the user table after having it hashed
@@ -158,6 +165,7 @@ export class AuthService {
         }
         
         console.log(doctor);
+        
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
         //create new user having email as dto email and hash
@@ -184,6 +192,16 @@ export class AuthService {
        
         return tokens;
     }
+    async checkDocEmail(email: string): Promise<boolean> {
+        const user = await this.prisma.user.findFirst({
+          where: {
+            email: email,
+          },
+        });
+      
+        return !!user;
+      }
+
     // async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
     //     //check if staff id valid or not :
     //     const staff_id = dto.staff_id;
@@ -314,83 +332,80 @@ export class AuthService {
         });
       
     }
-    async EmergLogin(staffId: string,image : string){
-        const tokens = {'access_token': null, 'refresh_token': null};
-       
-        const staff = await this.prisma.medicalStaffId.findUnique({
+    async EmergLogin(id: string){
+        const staff = await this.prisma.medicalStaffId.findFirst({
             where: {
-                used_by: staffId
+                used_by: id
             }
         });
-        console.log(staffId)
-        const doc = await this.prisma.doctorId.findUnique({
+        console.log(id)
+        const doc = await this.prisma.doctorId.findFirst({
             
             where: {
-                id: staffId
+                id: id
             }
         });
         if((!doc || !doc.id) && (!staff || !staff.used_by)){
-            throw new ForbiddenException("Access Denied" );
+            throw new BadRequestException("Invalid ID");
         }
+      }
+      
 
-        const user = await this.prisma.user.findUnique({
-            where:{
-                image : image
-            }
-        });
-        // Load FaceAPI models
-  // Load faceapi models
-await Promise.all([
-    faceapi.nets.faceRecognitionNet.loadFromDisk('./models'),
-    faceapi.nets.faceLandmark68Net.loadFromDisk('./models'),
-    faceapi.nets.ssdMobilenetv1.loadFromDisk('./models')
-  ]);
-  
-  // Convert user's stored image string to FaceRecognitionNetInput
-  const buffer = Buffer.from(user.image, 'base64');
-  const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
-  const faceImage = await faceapi.bufferToImage(imageBlob);
-  const faceDetection = await faceapi.detectSingleFace(faceImage).withFaceLandmarks().withFaceDescriptor();
-  
-  // Convert login image string to FaceRecognitionNetInput
-  const loginBuffer = Buffer.from(image, 'base64');
-  const loginImageBlob = new Blob([loginBuffer], { type: 'image/jpeg' });
-  const loginFaceImage = await faceapi.bufferToImage(loginImageBlob);
-  const loginFaceDetection = await faceapi.detectSingleFace(loginFaceImage).withFaceLandmarks().withFaceDescriptor();
-  
-  // Calculate face recognition similarity
-  const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
-  const similarity = faceMatcher.findBestMatch(loginFaceDetection.descriptor).distance;
-  
-  // If similarity is below a certain threshold, reject login
-  const SIMILARITY_THRESHOLD = 0.6;
-  if (similarity > SIMILARITY_THRESHOLD) {
-    throw new ForbiddenException('Access Denied');
-  }
-  
-
-   
-        if(!(!doc || !doc.id)){
-            console.log("slm");
-            const tokens = await this.getStTokens(doc.idx);
-
-        await this.updateRThash(doc.idx, tokens.refresh_token);
-        return tokens;
+      async RF(image: string) {
+       
+        // Load faceapi models
+        await Promise.all([
+          faceapi.nets.faceRecognitionNet.loadFromDisk('./models'),
+          faceapi.nets.faceLandmark68Net.loadFromDisk('./models'),
+          faceapi.nets.ssdMobilenetv1.loadFromDisk('./models'),
+        ]);
+    
+        // Convert login image string to FaceRecognitionNetInput
+        const loginBuffer = Buffer.from(image, 'base64');
+        const loginImageBlob = new Blob([loginBuffer], { type: 'image/jpeg' });
+        const loginFaceImage = await faceapi.bufferToImage(loginImageBlob);
+        const loginFaceDetection = await faceapi
+          .detectSingleFace(loginFaceImage)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+    
+        // Get all users from the database
+        const users = await this.prisma.user.findMany();
+        let foundUser = null;
+    
+        // Iterate over each user and compare their image to the login image
+        for (const user of users) {
+          // Convert user's stored image string to FaceRecognitionNetInput
+          const buffer = Buffer.from(user.image, 'base64');
+          const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
+          const faceImage = await faceapi.bufferToImage(imageBlob);
+          const faceDetection = await faceapi
+            .detectSingleFace(faceImage)
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+    
+          // Calculate face recognition similarity
+          const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
+          const similarity = faceMatcher.findBestMatch(
+            loginFaceDetection.descriptor
+          ).distance;
+    
+          // If similarity is below a certain threshold, consider the user found
+          const SIMILARITY_THRESHOLD = 0.6;
+          if (similarity <= SIMILARITY_THRESHOLD) {
+            foundUser = user;
+            break;
+          }
         }
+    
+        // If no user was found, reject login
+        if (!foundUser) {
+          throw new ForbiddenException('Access Denied');
+        }
+    
         
-        if(!((!staff || !staff.used_by))){
-            console.log("slm1");
-            console.log(staff.id);
-            const tokens = await this.getStTokens(staff.id);
-
-        await this.updateRThash2(staff.id, tokens.refresh_token);
-        return tokens;
-        }
+      }
         
-
-        return tokens;
-
-    }
     async refreshToken(userId: number, rt: string){
         // console.log(userId);
         // console.log(rt);

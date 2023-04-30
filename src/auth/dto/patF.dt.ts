@@ -29,11 +29,9 @@ export class patFDTO{
     @IsNotEmpty()
     bloodtype: string;
     
-    @IsNotEmpty()
-    @IsNumber()
+   
     height: number;
    
-    @IsNotEmpty()
-    @IsNumber()
+    
     weight: number;
 }

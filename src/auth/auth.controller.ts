@@ -1,4 +1,4 @@
-import { Controller,Post, Body, HttpCode, Header, HttpStatus, UseGuards, Req, ValidationPipe, ParseIntPipe, Param} from '@nestjs/common';
+import { Controller,Post, Body, HttpCode, Header, HttpStatus, UseGuards, Req, ValidationPipe, ParseIntPipe, Param, Get} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto';
 import { Tokens } from './types/tokens.type';
@@ -13,7 +13,18 @@ import { docFDTO } from './dto/docF.dto';
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService ){}
-
+    @Get('user/check-email/:email')
+@HttpCode(HttpStatus.OK)
+async checkDocEmail(@Param('email') email: string) {
+  const emailExists = await this.authService.checkDocEmail(email);
+  return { exists: emailExists };
+}
+    @Post('/signup/user/patientform/:id')
+    @HttpCode(HttpStatus.OK)
+    async LocpatientForm(@Body(ValidationPipe) dto: patFDTO, @Param('id', ParseIntPipe) id: number){
+       
+        await this.authService.LocpatientForm(dto, id);
+    }
     @Post('/signup/user')
     @HttpCode(HttpStatus.CREATED)
     async Locsignup(@Body() dto: SupDTO): Promise<Tokens>{
@@ -28,11 +39,7 @@ export class AuthController {
         const tokens = await this.authService.LocsignupDoc(dto);
   return tokens;
     }
-    @Post('/signup/user/patientform/:id')
-    @HttpCode(HttpStatus.OK)
-    async LocpatientForm(@Body(ValidationPipe) dto: patFDTO, @Param('id', ParseIntPipe) id: number){
-        await this.authService.LocpatientForm(dto, id);
-    }
+    
     @Post('/signup/doctor/doctorform/:id')
     @HttpCode(HttpStatus.OK)
     async LocdoctorForm(@Body(ValidationPipe) dto: docFDTO, @Param('id', ParseIntPipe) id: number){
@@ -61,12 +68,18 @@ export class AuthController {
     
     @Post('Emergency/id')
     @HttpCode(HttpStatus.OK)
-    async EmergLogin(@Req() req: Request): Promise<Tokens>{
+    async EmergLogin(@Body() data: {id: string}){
        
         
-        const tokens = await this.authService.EmergLogin(req.body['staffId'], req.body['image']);
+       await this.authService.EmergLogin(data.id);
 
-        return tokens;
+    }
+
+    @Post('Emergency/RF')
+    @HttpCode(HttpStatus.OK)
+    async RF(@Req() req: Request) {
+   
+        await this.authService.RF(req.body['image'])
     }
     @UseGuards(AuthGuard('jwt'))
     @Post('logout')

@@ -13,10 +13,11 @@ import { MsgDTO } from 'src/chat/dto';
      constructor(private ProfileS: ProfileService, private chat: ChatService){ }
 
     // profile: 
+    
   @Post('/:id/basic-info') 
   @HttpCode(HttpStatus.OK)
  
-   async Basic_info(@Param('id') patientId: number): Promise<PatientProfile>{ 
+   async Basic_info(@Param('id', ParseIntPipe) patientId: number): Promise<PatientProfile>{ 
         return await this.ProfileS.BasicP(patientId); 
     } 
 
