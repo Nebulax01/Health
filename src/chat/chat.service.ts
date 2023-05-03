@@ -1,4 +1,4 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, ParseIntPipe } from '@nestjs/common';
 import { ChatRoom, Message } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DocPatDTO, MsgDTO } from './dto';
@@ -52,16 +52,30 @@ export class ChatService {
    }
 
 
-   async createMessage(senderId: string, chatRoomId: string, @Body()dto: MsgDTO): Promise<Message>{
-       const msg =  await this.prisma.message.create({
+   async createMessage(senderId: string, chatRoomId: string, message: string): Promise<Message>{
+  console.log(senderId)
+    const id = parseInt(senderId)  
+    const us = await this.prisma.user.findFirst({
+        where:{
+            id: id
+        }
+    });
+    console.log(us)
+    if(us.Role === "DOCTOR"){
+        senderId = "doctor"
+    }
+    else{
+        senderId = "patient"
+    }
+    const msg =  await this.prisma.message.create({
             data:{
                 chatRoomId: chatRoomId,
                 sender: senderId,
-                content: dto.text
+                content: message
             }
         });
 
-
+        console.log(msg)
         return msg;
    }
 
@@ -80,11 +94,22 @@ export class ChatService {
             },
             include: {messages: true}
         });
-        console.log(doctorId)
-        console.log(patientId)
+        
         if(chat)
         return chat.messages;
         if(chat2)
         return chat2.messages;
    }
+
+   async getChatRoomId(doctorId: number, patientId: number){
+    
+    const chatR = await this.prisma.chatRoom.findFirst({
+        where:{
+            doctorId: doctorId,
+            patientId: patientId
+        }
+    });
+   
+    return chatR;
+}
 }

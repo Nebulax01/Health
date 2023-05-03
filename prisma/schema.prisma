@@ -137,9 +137,11 @@ model ChatRoom {
   // Relation to doctors
   doctor    Doctor         @relation("doctorChatRooms", fields: [doctorId], references: [user_id])
   doctorId  Int
+  doctor_name String?
   // Relation to patients
   patient   PatientProfile @relation("patientChatRooms", fields: [patientId], references: [user_id])
   patientId Int
+  patient_name String?
 }
 
 model Message {

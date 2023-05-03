@@ -77,7 +77,7 @@ export class DoctorProfileController {
     @Post('/:doctorId/chatRooms/:chatroomId/sendMsg/:patientId')
     @HttpCode(HttpStatus.OK)
     async createMessage(@Param('doctorId') senderId: string, @Param('chatroomId') chatroomId: string, @Body(ValidationPipe)dto: MsgDTO): Promise<Message>{
-        return await this.chat.createMessage(senderId, chatroomId, dto)
+        return await this.chat.createMessage(senderId, chatroomId, dto.text)
     }
 //editing own info :
     @Post(':id/basic-info/edit')
