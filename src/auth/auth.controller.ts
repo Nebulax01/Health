@@ -18,10 +18,15 @@ export class AuthController {
 async checkDocEmail(@Param('email') email: string) {
   const emailExists = await this.authService.checkDocEmail(email);
   return { exists: emailExists };
-}
+}   @Get('/auth/check/:specialty/:id')
+    @HttpCode(HttpStatus.OK)
+    async checkIdspec(@Param('id', ParseIntPipe) id: number, @Param('specialty')specialty : string){
+        return await this.authService.checkIdspec(id, specialty)
+
+    }
     @Get('check/:id')
     @HttpCode(HttpStatus.OK)
-    async checkId(@Param('id', ParseIntPipe) id: number): Promise<Boolean>{
+    async checkId(@Param('id', ParseIntPipe) id: number){
         return  await this.authService.checkId(id);
        
 

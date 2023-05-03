@@ -202,13 +202,36 @@ export class AuthService {
         return !!user;
       }
 
-      async checkId(id: number): Promise<boolean>{
+      async checkId(id: number){
         const user = await this.prisma.user.findFirst({
             where:{
                 id: id
             }
         });
-        return (user.Role === "DOCTOR")
+        return user;
+    }
+
+    async checkIdspec(id: number, specialty: string): Promise<boolean>{
+        const user = await this.prisma.user.findFirst({
+            where:{
+                id: id
+            }
+        });
+        if (user.id && user.Role === "PATIENT"){
+            return true;
+        }
+        const doctor = await this.prisma.doctor.findFirst({
+            where:{
+                user_id: id
+            }
+        });
+        if(doctor.specialty === specialty){
+            return true;
+        }
+
+        return false;
+
+
     }
 
     // async LocsignupStaff(@Body() dto: StaffDTO): Promise<Tokens>{
