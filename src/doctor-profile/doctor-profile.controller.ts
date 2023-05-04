@@ -31,7 +31,7 @@ export class DoctorProfileController {
 
     @Get('/:doctorId/patients')
     @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard('jwt'))
+   
     async  getDocPatients(@Param('doctorId', ParseIntPipe)doctorId: number): Promise<PatientProfile[]>{
        return await this.DocPserv. getDocPatients(doctorId);
         
@@ -45,24 +45,25 @@ export class DoctorProfileController {
         
     }
 
-    @Post('/:doctorId/addPatient/:email')
+    @Get('/:doctorId/addPatient/:email')
     @HttpCode(HttpStatus.CREATED)
-    async addPatient(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('email') email: string):Promise<void>{
+    async addPatient(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('email') email: string):Promise<PatientProfile>{
     
      // console.log(req.user['sub']);
-      await this.DocPserv.addPatient(doctorId, email);
+      return await this.DocPserv.addPatient(doctorId, email);
   }
-    @Post('/:doctorId/deletePatient/:id')
-    async deletePatient(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('id', ParseIntPipe) patientId: number){
+    @Get('/:doctorId/deletePatient/:id')
+    @HttpCode(HttpStatus.OK)
+    async deletePatient(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('id', ParseIntPipe) patientId: number): Promise<Boolean>{
        
-        await this.DocPserv.deletePatient(doctorId, patientId)
+        return await this.DocPserv.deletePatient(doctorId, patientId)
     }
-    @Get('/:doctorId/chatRooms/:patientId')
+    @Get('/:doctorId/chatRoom/:patientId')
     @HttpCode(HttpStatus.OK)
     
-    async getMessagesForChatRoom(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('patientId', ParseIntPipe) patientId: number): Promise<Message[]>{
+    async getMessagesForChatRoom(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('patientId', ParseIntPipe) patientId: number){
         
-        return await this.chat.getMessagesForChatRoom(doctorId, patientId);
+      return await this.chat.getChatRoomId(doctorId, patientId); 
         
     }
 

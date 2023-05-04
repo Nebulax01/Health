@@ -26,18 +26,25 @@ export class DoctorProfileService {
 
     }
     async deletePatient(doctorId:number, patientId: number){
+      
       const Doc = await this.prisma.doctor.findFirst({
         where:{
             user_id : doctorId
         },
         include: {patients: true}
     });
+    
 console.log(Doc)
-
+console.log(patientId)
     const foundIndex = Doc.patients.findIndex((obj) => obj.user_id === patientId);
 
 if (foundIndex !== -1) {
-  
+  const chatId = await this.prisma.chatRoom.findFirst({
+    where:{
+      doctorId: doctorId,
+      patientId: patientId
+    }
+  });
   await this.prisma.doctor.update({
     where: {
       user_id: doctorId
@@ -47,10 +54,16 @@ if (foundIndex !== -1) {
         disconnect: {
           user_id: patientId
         }
+      },
+      chatRooms: {
+        disconnect:{
+         id: chatId.id 
+        }
       }
     },
     include: {
-      patients: true
+      patients: true,
+      chatRooms: true
     }
   });
   await this.prisma.patientProfile.update({
@@ -62,16 +75,25 @@ if (foundIndex !== -1) {
         disconnect: {
           user_id: doctorId
         }
+      },
+      chatRooms: {
+        disconnect:{
+         id: chatId.id 
+        }
       }
     },
     include: {
-      doctors: true
+      doctors: true,
+      chatRooms: true
     }
+  
   });
+
+  console.log("deleted")
+  return true;
 }
-else {
-  throw new NotFoundException("patient not found ")
-}
+console.log("not deleted")
+return false;
 
   }
 
@@ -106,14 +128,14 @@ async getPatient(patientId: number): Promise<PatientProfile>{
 
 
   
-  async addPatient(doctorId: number, email: string):Promise<void>{
+  async addPatient(doctorId: number, email: string):Promise<PatientProfile>{
     console.log(email)
     console.log(doctorId)
     const patient = await this.prisma.patientProfile.findFirst({
       where: { email: email }});
 
-    
-    if(!patient)  throw new ForbiddenException(`Patient does not exist`);
+    console.log(patient)
+    if(!patient)  return null;
    
     await  this.prisma.doctor.update({
       where: {user_id: doctorId },
@@ -127,6 +149,9 @@ async getPatient(patientId: number): Promise<PatientProfile>{
     });
 
     await this.chat.createchatRoom(doctorId, patient.user_id);
+
+
+    return patient;
 
 }
 async addmedications (patientId: number, dto: MedicaDTO): Promise<void>{
