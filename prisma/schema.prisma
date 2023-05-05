@@ -109,7 +109,7 @@ model Allergy {
 model Vaccination {
   id         Int            @id @default(autoincrement())
   name       String
-  date       DateTime
+  date       DateTime        @default(now())
   patient_id Int
   patient    PatientProfile @relation(fields: [patient_id], references: [user_id])
 }
@@ -117,7 +117,7 @@ model Vaccination {
 model Medication {
   id         Int            @id @default(autoincrement())
   name       String
-  date       DateTime
+  date       DateTime  @default(now())
   disease    String
   patient_id Int
   patient    PatientProfile @relation(fields: [patient_id], references: [user_id])
@@ -149,6 +149,7 @@ model Message {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   content    String
+  
   sender     String // either "doctor" or "patient"
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   chatRoomId String
@@ -158,7 +159,7 @@ model MedicalFile {
   id            Int            @id @default(autoincrement())
   name          String
   description   String
-  date          DateTime?
+  date          DateTime        @default(now())
   specialtyName String
   patientId     Int
   patient       PatientProfile @relation("MedicalFileToPatientProfile", fields: [patientId], references: [user_id])

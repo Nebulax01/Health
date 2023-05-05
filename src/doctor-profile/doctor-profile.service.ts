@@ -219,15 +219,14 @@ console.log(name)
 
 }
 
-async addvaccination (patientId: number, dto: VaccDTO): Promise<void>{
+async addvaccination (patientId: number, name: string): Promise<void>{
 
   await this.prisma.vaccination.create({
-    data:{
-      name: dto.name,
-     
-      date: dto.date,
-      patient_id: patientId
-    }
+   data:{
+    name:name,
+    patient_id: patientId,
+  
+   }
   })
 
 

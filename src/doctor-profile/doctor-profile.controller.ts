@@ -134,11 +134,11 @@ export class DoctorProfileController {
       async addmedications (@Param('id', ParseIntPipe) patientId: number, @Body(ValidationPipe)dto : MedicaDTO): Promise<void>{
         await this.DocPserv.addmedications(patientId, dto);
       }
-      @Post('patients/:id/vaccinations/addVacc')
+      @Post('patients/:id/vaccinations/addVacc/:name')
       @HttpCode(HttpStatus.OK)
     
-      async addvaccinations (@Param('id', ParseIntPipe) patientId: number, @Body(ValidationPipe)dto : VaccDTO): Promise<void>{
-        await this.DocPserv.addvaccination(patientId, dto);
+      async addvaccinations (@Param('id', ParseIntPipe) patientId: number, @Param('name')name: string): Promise<void>{
+        await this.DocPserv.addvaccination(patientId, name);
       }
       @Post('patients/:id/allergies/addAll/:name')
       @HttpCode(HttpStatus.OK)
