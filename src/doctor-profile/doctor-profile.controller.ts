@@ -146,10 +146,12 @@ export class DoctorProfileController {
       async addallergy (@Param('id', ParseIntPipe) patientId: number, @Param('name') name: string): Promise<void>{
         await this.DocPserv.addallergy(patientId, name);
       }
-      @Post('patients/:id/diseases/addDis')
+      @Post('patients/:id/diseases/addDis/:name')
       @HttpCode(HttpStatus.OK)
     
       async adddisease (@Param('id', ParseIntPipe) patientId: number,@Param('name') name: string): Promise<void>{
+        console.log(name)
+        console.log(patientId)
         await this.DocPserv.adddisease(patientId, name);
       }
 

@@ -26,76 +26,66 @@ export class DoctorProfileService {
 
     }
     async deletePatient(doctorId:number, patientId: number){
-      
+
       const Doc = await this.prisma.doctor.findFirst({
         where:{
             user_id : doctorId
         },
-        include: {patients: true}
-    });
+        include: {patients: true, chatRooms: true}
+      });
+        
+      const foundIndex = Doc.patients.findIndex((obj) => obj.user_id === patientId);
     
-console.log(Doc)
-console.log(patientId)
-    const foundIndex = Doc.patients.findIndex((obj) => obj.user_id === patientId);
-
-if (foundIndex !== -1) {
-  const chatId = await this.prisma.chatRoom.findFirst({
-    where:{
-      doctorId: doctorId,
-      patientId: patientId
-    }
-  });
-  await this.prisma.doctor.update({
-    where: {
-      user_id: doctorId
-    },
-    data: {
-      patients: {
-        disconnect: {
-          user_id: patientId
-        }
-      },
-      chatRooms: {
-        disconnect:{
-         id: chatId.id 
-        }
+      if (foundIndex !== -1) {
+        const chatId = Doc.chatRooms.find((chat) => chat.patientId === patientId).id;
+    
+        await this.prisma.doctor.update({
+          where: {
+            user_id: doctorId
+          },
+          data: {
+            patients: {
+              disconnect: {
+                user_id: patientId
+              }
+            },
+           
+          },
+          include: {
+            patients: true,
+            
+          }
+        });
+    
+        await this.prisma.patientProfile.update({
+          where: {
+            user_id: patientId
+          },
+          data: {
+            doctors: {
+              disconnect: {
+                user_id: doctorId
+              }
+            },
+           
+          },
+          include: {
+            doctors: true,
+           
+          }
+        });
+    
+     
+    
+        console.log("deleted");
+        return true;
       }
-    },
-    include: {
-      patients: true,
-      chatRooms: true
+    
+      console.log("not deleted");
+      return false;
     }
-  });
-  await this.prisma.patientProfile.update({
-    where: {
-      user_id: patientId
-    },
-    data: {
-      doctors: {
-        disconnect: {
-          user_id: doctorId
-        }
-      },
-      chatRooms: {
-        disconnect:{
-         id: chatId.id 
-        }
-      }
-    },
-    include: {
-      doctors: true,
-      chatRooms: true
-    }
-  
-  });
-
-  console.log("deleted")
-  return true;
-}
-console.log("not deleted")
-return false;
-
-  }
+    
+    
 
    async  getDocPatients(id: number): Promise<PatientProfile[]>{
         const Doc = await this.prisma.doctor.findFirst({
@@ -217,7 +207,8 @@ async addallergy (patientId: number, name: string): Promise<void>{
 }
 
 async adddisease (patientId: number, name: string): Promise<void>{
-
+console.log(patientId)
+console.log(name)
   await this.prisma.disease.create({
     data:{
       name: name,

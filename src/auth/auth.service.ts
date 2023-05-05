@@ -119,6 +119,7 @@ export class AuthService {
         })
     }
     async Locsignup(@Body() dto: SupDTO): Promise<Tokens>{
+        console.log(dto)
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
         
