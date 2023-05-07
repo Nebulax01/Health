@@ -9,7 +9,7 @@ import { docDTO } from './dto/docDto.dto';
 import { StaffDTO } from './dto/staffDto.dto';
 import * as faceapi from 'face-api.js';
 import { AuthDocDTO } from './dto/authodoc.dto';
-import { UserRole } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 import { patFDTO } from './dto/patF.dt';
 import { docFDTO } from './dto/docF.dto';
 import { identity } from 'rxjs';
@@ -401,60 +401,63 @@ export class AuthService {
       }
       
 
-    //   async RF(image: string) {
-       
-    //     // Load faceapi models
-    //     await Promise.all([
-    //       faceapi.nets.faceRecognitionNet.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceRecognitionNet'),
-    //       faceapi.nets.faceLandmark68Net.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceLandmark68Net'),
-    //       faceapi.nets.ssdMobilenetv1.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/ssdMobilenetv1'),
-    //     ]);
+      async recognizeFaces(imageUrls: string[]): Promise<User> {
+        // Load faceapi models
+        await Promise.all([
+          faceapi.nets.faceRecognitionNet.loadFromDisk('../../node_modules/face-api.js/build/commonjs/faceRecognitionNet'),
+          faceapi.nets.faceLandmark68Net.loadFromDisk('../../hello/node_modules/face-api.js/build/commonjs/faceLandmark68Net'),
+          faceapi.nets.ssdMobilenetv1.loadFromDisk('../../hello/node_modules/face-api.js/build/commonjs/ssdMobilenetv1'),
+        ]);
     
-    //     // Convert login image string to FaceRecognitionNetInput
-    //     const loginBuffer = Buffer.from(image, 'base64');
-    //     const loginImageBlob = new Blob([loginBuffer], { type: 'image/jpeg' });
-    //     const loginFaceImage = await faceapi.bufferToImage(loginImageBlob);
-    //     const loginFaceDetection = await faceapi
-    //       .detectSingleFace(loginFaceImage)
-    //       .withFaceLandmarks()
-    //       .withFaceDescriptor();
+        // Get all users from the database
+        const users = await this.prisma.user.findMany();
     
-    //     // Get all users from the database
-    //     const users = await this.prisma.user.findMany();
-    //     let foundUser = null;
+        for (const imageUrl of imageUrls) {
+          // Convert image URL to FaceRecognitionNetInput
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const image = await faceapi.bufferToImage(blob);
+          const detection = await faceapi.detectSingleFace(image)
+            .withFaceLandmarks()
+            .withFaceDescriptor();
     
-    //     // Iterate over each user and compare their image to the login image
-    //     for (const user of users) {
-    //       // Convert user's stored image string to FaceRecognitionNetInput
-    //       const buffer = Buffer.from(user.image, 'base64');
-    //       const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
-    //       const faceImage = await faceapi.bufferToImage(imageBlob);
-    //       const faceDetection = await faceapi
-    //         .detectSingleFace(faceImage)
-    //         .withFaceLandmarks()
-    //         .withFaceDescriptor();
+          let foundUser = null;
     
-    //       // Calculate face recognition similarity
-    //       const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
-    //       const similarity = faceMatcher.findBestMatch(
-    //         loginFaceDetection.descriptor
-    //       ).distance;
+          // Iterate over each user and compare their image to the login image
+          for (const user of users) {
+            // Convert user's stored image string to FaceRecognitionNetInput
+            const buffer = Buffer.from(user.image, 'base64');
+            const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
+            const faceImage = await faceapi.bufferToImage(imageBlob);
+            const faceDetection = await faceapi
+              .detectSingleFace(faceImage)
+              .withFaceLandmarks()
+              .withFaceDescriptor();
     
-    //       // If similarity is below a certain threshold, consider the user found
-    //       const SIMILARITY_THRESHOLD = 0.6;
-    //       if (similarity <= SIMILARITY_THRESHOLD) {
-    //         foundUser = user;
-    //         break;
-    //       }
-    //     }
+            // Calculate face recognition similarity
+            const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
+            const similarity = faceMatcher.findBestMatch(
+              detection.descriptor
+            ).distance;
     
-    //     // If no user was found, reject login
-    //     if (!foundUser) {
-    //       throw new ForbiddenException('Access Denied');
-    //     }
+            // If similarity is below a certain threshold, consider the user found
+            const SIMILARITY_THRESHOLD = 0.6;
+            if (similarity <= SIMILARITY_THRESHOLD) {
+              foundUser = user;
+              break;
+            }
+          }
     
-        
-    //   }
+          // If a user was found, return it
+          if (foundUser) {
+            return foundUser;
+          }
+        }
+    
+        // If no user was found, reject login
+        throw new ForbiddenException('Access Denied');
+    }
+    
         
     async refreshToken(userId: number, rt: string){
         // console.log(userId);

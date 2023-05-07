@@ -91,12 +91,12 @@ async checkDocEmail(@Param('email') email: string) {
     async getImage(@Param('id', ParseIntPipe) id: number):Promise<String>{
         return await this.authService.getImage(id);
     }
-    // @Post('Emergency/RF')
-    // @HttpCode(HttpStatus.OK)
-    // async RF(@Req() req: Request) {
-   
-    //     await this.authService.RF(req.body['image'])
-    // }
+    @Post('Emergency/RF')
+    @HttpCode(HttpStatus.OK)
+    async RF(@Req() req: Request) {
+        console.log(req.body)
+        await this.authService.recognizeFaces(req.body['image'])
+    }
     @UseGuards(AuthGuard('jwt'))
     @Post('logout')
     @HttpCode(HttpStatus.OK)
