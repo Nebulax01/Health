@@ -63,7 +63,9 @@ model PatientProfile {
   blood_type        String?
   weight            Float?
   height            Float?
-  photo             String?
+  
+  
+
   diseases          Disease[]
   allergies         Allergy[]
   vaccinations      Vaccination[]

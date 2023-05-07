@@ -18,4 +18,7 @@ export class docDTO{
     @IsNotEmpty()
     @IsString()
     phonenumber: string
+    @IsNotEmpty()
+    @IsString()
+    image: string
 }

@@ -120,6 +120,7 @@ export class AuthService {
     }
     async Locsignup(@Body() dto: SupDTO): Promise<Tokens>{
         console.log(dto)
+        
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
         
@@ -151,8 +152,22 @@ export class AuthService {
         //server compares user refresh token and the one stored in the database if they match it generates a new access token else it won't
         return tokens;
     }
+    async getImage(id: number): Promise<String> {
+        const user = await this.prisma.user.findFirst({
+          where: {
+            id: id
+          }
+        });
+      
+        // Assuming user.image is a Buffer of the image bytes
+        const base64Image = Buffer.from(user.image).toString('base64');
+      
+        return base64Image;
+      }
     async LocsignupDoc(@Body() dto: docDTO): Promise<Tokens>{
         //check if doctor id valid or not :
+        console.log(dto)
+     
         const doc_id = dto.doctor_id;
         console.log(doc_id);
         const doctor = await this.prisma.doctorId.findUnique({
@@ -165,11 +180,12 @@ export class AuthService {
             throw new ForbiddenException("Access denied : invalid Doctor ID");
         }
         
-        console.log(doctor);
+        //console.log(doctor);
         
         //encrypts password and store it in hash constant
         const hash = await this.hashdata(dto.password);
         //create new user having email as dto email and hash
+        
         const newUser = await this.prisma.user.create({
             data: {
               email: dto.email,
@@ -178,6 +194,7 @@ export class AuthService {
               phone_number: dto.phonenumber,
               Role: 'DOCTOR',
               password: hash,
+              image: dto.image
             },
           });
         const doC = await this.prisma.doctor.create({
@@ -192,7 +209,7 @@ export class AuthService {
         await this.updateRThash((await newUser).id, tokens.refresh_token);
        
         return tokens;
-    }
+    } 
     async checkDocEmail(email: string): Promise<boolean> {
         const user = await this.prisma.user.findFirst({
           where: {
@@ -384,60 +401,60 @@ export class AuthService {
       }
       
 
-      async RF(image: string) {
+    //   async RF(image: string) {
        
-        // Load faceapi models
-        await Promise.all([
-          faceapi.nets.faceRecognitionNet.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceRecognitionNet'),
-          faceapi.nets.faceLandmark68Net.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceLandmark68Net'),
-          faceapi.nets.ssdMobilenetv1.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/ssdMobilenetv1'),
-        ]);
+    //     // Load faceapi models
+    //     await Promise.all([
+    //       faceapi.nets.faceRecognitionNet.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceRecognitionNet'),
+    //       faceapi.nets.faceLandmark68Net.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceLandmark68Net'),
+    //       faceapi.nets.ssdMobilenetv1.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/ssdMobilenetv1'),
+    //     ]);
     
-        // Convert login image string to FaceRecognitionNetInput
-        const loginBuffer = Buffer.from(image, 'base64');
-        const loginImageBlob = new Blob([loginBuffer], { type: 'image/jpeg' });
-        const loginFaceImage = await faceapi.bufferToImage(loginImageBlob);
-        const loginFaceDetection = await faceapi
-          .detectSingleFace(loginFaceImage)
-          .withFaceLandmarks()
-          .withFaceDescriptor();
+    //     // Convert login image string to FaceRecognitionNetInput
+    //     const loginBuffer = Buffer.from(image, 'base64');
+    //     const loginImageBlob = new Blob([loginBuffer], { type: 'image/jpeg' });
+    //     const loginFaceImage = await faceapi.bufferToImage(loginImageBlob);
+    //     const loginFaceDetection = await faceapi
+    //       .detectSingleFace(loginFaceImage)
+    //       .withFaceLandmarks()
+    //       .withFaceDescriptor();
     
-        // Get all users from the database
-        const users = await this.prisma.user.findMany();
-        let foundUser = null;
+    //     // Get all users from the database
+    //     const users = await this.prisma.user.findMany();
+    //     let foundUser = null;
     
-        // Iterate over each user and compare their image to the login image
-        for (const user of users) {
-          // Convert user's stored image string to FaceRecognitionNetInput
-          const buffer = Buffer.from(user.image, 'base64');
-          const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
-          const faceImage = await faceapi.bufferToImage(imageBlob);
-          const faceDetection = await faceapi
-            .detectSingleFace(faceImage)
-            .withFaceLandmarks()
-            .withFaceDescriptor();
+    //     // Iterate over each user and compare their image to the login image
+    //     for (const user of users) {
+    //       // Convert user's stored image string to FaceRecognitionNetInput
+    //       const buffer = Buffer.from(user.image, 'base64');
+    //       const imageBlob = new Blob([buffer], { type: 'image/jpeg' });
+    //       const faceImage = await faceapi.bufferToImage(imageBlob);
+    //       const faceDetection = await faceapi
+    //         .detectSingleFace(faceImage)
+    //         .withFaceLandmarks()
+    //         .withFaceDescriptor();
     
-          // Calculate face recognition similarity
-          const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
-          const similarity = faceMatcher.findBestMatch(
-            loginFaceDetection.descriptor
-          ).distance;
+    //       // Calculate face recognition similarity
+    //       const faceMatcher = new faceapi.FaceMatcher([faceDetection]);
+    //       const similarity = faceMatcher.findBestMatch(
+    //         loginFaceDetection.descriptor
+    //       ).distance;
     
-          // If similarity is below a certain threshold, consider the user found
-          const SIMILARITY_THRESHOLD = 0.6;
-          if (similarity <= SIMILARITY_THRESHOLD) {
-            foundUser = user;
-            break;
-          }
-        }
+    //       // If similarity is below a certain threshold, consider the user found
+    //       const SIMILARITY_THRESHOLD = 0.6;
+    //       if (similarity <= SIMILARITY_THRESHOLD) {
+    //         foundUser = user;
+    //         break;
+    //       }
+    //     }
     
-        // If no user was found, reject login
-        if (!foundUser) {
-          throw new ForbiddenException('Access Denied');
-        }
+    //     // If no user was found, reject login
+    //     if (!foundUser) {
+    //       throw new ForbiddenException('Access Denied');
+    //     }
     
         
-      }
+    //   }
         
     async refreshToken(userId: number, rt: string){
         // console.log(userId);

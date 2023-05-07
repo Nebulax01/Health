@@ -1,4 +1,4 @@
-import {IsEmail, IsNotEmpty, IsString} from 'class-validator'
+import {IsEmail, IsNotEmpty, IsString, isString} from 'class-validator'
 export class SupDTO{
     @IsNotEmpty()
     @IsString()
@@ -15,6 +15,7 @@ export class SupDTO{
     @IsNotEmpty()
     @IsString()
     phonenumber: string
-    
-    image: string
+    @IsNotEmpty()
+    @IsString()
+    image:string
 }

@@ -231,17 +231,8 @@ async addvaccination (patientId: number, name: string): Promise<void>{
 
 
 }
-async getMedicalFiles(doctorId: number, patientId: number, specialtyName: string): Promise<MedicalFile[]>{
+async getMedicalFiles(patientId: number, specialtyName: string): Promise<MedicalFile[]>{
 
-  const Doc = await this.prisma.doctor.findUnique({
-    where:{
-      user_id: doctorId
-    }
-  });
-
-  if(Doc.specialty !== specialtyName){
-    throw new UnauthorizedException('you are not allowed to view this information');
-  }
   const medicalFiles = await this.prisma.medicalFile.findMany({
     where: {
       patientId: patientId,
@@ -252,28 +243,22 @@ async getMedicalFiles(doctorId: number, patientId: number, specialtyName: string
 
 }
 
-async addMedicalFiles(doctorId: number, patientId: number, dto: MedicFDTO){
+async addMedicalFiles(patientId: number, dto: MedicFDTO){
 
-  const Doc = await this.prisma.doctor.findUnique({
-    where:{
-      user_id: doctorId
-    }
-  });
-
-  if(Doc.specialty !== dto.specialtyName){
-    throw new UnauthorizedException('you are not allowed to update information');
-
-  }
-  // await this.prisma.medicalFile.create({
+  
+  await this.prisma.medicalFile.create({
    
      
   
-  //   data:{
-  //     patientId: patientId,
-  //     specialtyName: dto.specialtyName,
+    data:{
+      patientId: patientId,
+      specialtyName: dto.specialtyName,
+      name: dto.name,
+      description: dto.description
+
       
-  //   }
-  // })
+    }
+  })
 }
     
 

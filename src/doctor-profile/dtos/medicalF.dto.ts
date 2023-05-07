@@ -6,7 +6,7 @@ export class MedicFDTO{
   specialtyName: string
   @IsString()
   @IsNotEmpty()
-  url: string
+  description: string
   @IsString()
   @IsNotEmpty()
   name: string

@@ -156,18 +156,18 @@ export class DoctorProfileController {
       }
 
 
-      @Get('/:doctorId/patients/:id/specialties/:name/MedicalFiles')
+      @Get('/patients/:id/specialties/:name/MedicalFiles')
       @HttpCode(HttpStatus.OK)
       
-      async getMedicalFiles(@Param('doctorId', ParseIntPipe)doctorId: number, @Param('id', ParseIntPipe) patientId: number, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
-        return await this.DocPserv.getMedicalFiles(doctorId, patientId, specialtyName)
+      async getMedicalFiles(@Param('id', ParseIntPipe) patientId: number, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
+        return await this.DocPserv.getMedicalFiles(patientId, specialtyName)
 
       }
 
   
-    @Post(':doctorId/addMedicalFile/:id')
+    @Post('addMedicalFile/:id')
     @HttpCode(HttpStatus.OK)
-    async addMedicalFiles(@Param('doctorId', ParseIntPipe) doctorId: number, @Param('id', ParseIntPipe)patientId: number, @Body(ValidationPipe)dto: MedicFDTO){
-        await this.DocPserv.addMedicalFiles(doctorId, patientId, dto)
+    async addMedicalFiles(@Param('id', ParseIntPipe)patientId: number, @Body(ValidationPipe)dto: MedicFDTO){
+        await this.DocPserv.addMedicalFiles(patientId, dto)
 }
 }

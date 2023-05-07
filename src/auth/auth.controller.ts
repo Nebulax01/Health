@@ -86,13 +86,17 @@ async checkDocEmail(@Param('email') email: string) {
        await this.authService.EmergLogin(data.id);
 
     }
-
-    @Post('Emergency/RF')
+    @Get('image/:id')
     @HttpCode(HttpStatus.OK)
-    async RF(@Req() req: Request) {
-   
-        await this.authService.RF(req.body['image'])
+    async getImage(@Param('id', ParseIntPipe) id: number):Promise<String>{
+        return await this.authService.getImage(id);
     }
+    // @Post('Emergency/RF')
+    // @HttpCode(HttpStatus.OK)
+    // async RF(@Req() req: Request) {
+   
+    //     await this.authService.RF(req.body['image'])
+    // }
     @UseGuards(AuthGuard('jwt'))
     @Post('logout')
     @HttpCode(HttpStatus.OK)
