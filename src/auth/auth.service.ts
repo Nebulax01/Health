@@ -404,9 +404,9 @@ export class AuthService {
       async recognizeFaces(imageUrls: string[]): Promise<User> {
         // Load faceapi models
         await Promise.all([
-          faceapi.nets.faceRecognitionNet.loadFromDisk('../../node_modules/face-api.js/build/commonjs/faceRecognitionNet'),
-          faceapi.nets.faceLandmark68Net.loadFromDisk('../../hello/node_modules/face-api.js/build/commonjs/faceLandmark68Net'),
-          faceapi.nets.ssdMobilenetv1.loadFromDisk('../../hello/node_modules/face-api.js/build/commonjs/ssdMobilenetv1'),
+          faceapi.nets.faceRecognitionNet.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceRecognitionNet/face_recognition_model-weights_manifest.json'),
+          faceapi.nets.faceLandmark68Net.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceLandmarkNet/face_landmark_68_model-weights_manifest.json'),
+          faceapi.nets.ssdMobilenetv1.loadFromDisk('/home/akm/proj/hello/node_modules/face-api.js/build/commonjs/faceLandmarkNet/face_landmark_68_model-weights_manifest.json'),
         ]);
     
         // Get all users from the database

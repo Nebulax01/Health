@@ -47,7 +47,7 @@ export class ChatService {
         include: {chatRooms: true}
 
     });
-
+    console.log(pat.chatRooms)
     return pat.chatRooms;
    }
 

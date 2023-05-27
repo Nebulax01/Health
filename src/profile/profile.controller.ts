@@ -12,7 +12,13 @@ import { ChatGateway } from 'src/chat/chat.gateway';
   @HttpCode(HttpStatus.OK)
    async Basic_info(@Param('id', ParseIntPipe) patientId: number): Promise<PatientProfile>{ 
         return await this.ProfileS.BasicP(patientId); 
-    } 
+    }
+    @Get('/:email/basic-inf') 
+  @HttpCode(HttpStatus.OK)
+   async Basic_info2(@Param('email') email: string): Promise<PatientProfile>{ 
+        return await this.ProfileS.BasicP2(email); 
+    }
+
     @Get('/:id/diseases')
     @HttpCode(HttpStatus.OK)
     async diseases(@Param('id', ParseIntPipe) patientId: number) : Promise<Disease[]>{
@@ -23,6 +29,14 @@ import { ChatGateway } from 'src/chat/chat.gateway';
     
     async allergies(@Param('id',ParseIntPipe) patientId: number) : Promise<Allergy[]>{
         return await this.ProfileS.allergies(patientId);
+    }
+
+
+    @Get('/:email/allergie')
+    @HttpCode(HttpStatus.OK)
+    
+    async allergie(@Param('email') email: string) : Promise<Allergy[]>{
+        return await this.ProfileS.allergie(email);
     }
     @Get('/:patientId/chatRooms/:chatId')
     @HttpCode(HttpStatus.OK) 
@@ -38,22 +52,38 @@ import { ChatGateway } from 'src/chat/chat.gateway';
     @Get('/:id/doctors')
     @HttpCode(HttpStatus.OK)
     async doctors (@Param('id', ParseIntPipe) patientId: number): Promise<Doctor[]>{
+       
         return await this.ProfileS.Doc(patientId);
     }
+    @Get('/:email/doctor') 
+    @HttpCode(HttpStatus.OK)
+     async doctor(@Param('email') email: string): Promise<Doctor[]>{ 
+        console.log(email)
+          return await this.ProfileS.Doc2(email); 
+      }
     @Get('/:id/medications')
     @HttpCode(HttpStatus.OK)
     async medications (@Param('id', ParseIntPipe) patientId: number): Promise<Medication[]>{
         return await this.ProfileS.medications(patientId);
     }
+    @Get('/:email/medication')
+    @HttpCode(HttpStatus.OK)
+    async medication (@Param('email')email: string): Promise<Medication[]>{
+        return await this.ProfileS.medication(email);
+    }
+
     @Get('/:id/specialties/:name/MedicalFiles')
     @HttpCode(HttpStatus.OK)
     async getMedicalFiles (@Param('id', ParseIntPipe) patientId: number, @Param('name') specialtyName: string): Promise<MedicalFile[]>{
+        console.log(specialtyName)
+        console.log(patientId)
         return await this.ProfileS.getMedicalFilesForPatientAndSpecialty(patientId, specialtyName);
     }
     //chat: 
     @Get('/:patientId/chatRooms')
     @HttpCode(HttpStatus.OK)
     async getChatRoomsForPatient(@Param('patientId', ParseIntPipe)patientId: number): Promise<ChatRoom[]>{
+        console.log(patientId)
         return await this.chat.getChatRoomsForPatient(patientId);
     }
     @Get('/:patientId/chatRooms/:doctorId')

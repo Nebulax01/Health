@@ -69,6 +69,35 @@ export class ProfileService {
             return patient.doctors; 
         }
 
+       
+        async allergie(email: string) : Promise<Allergy[]>{
+            console.log(email)
+            const patient = await this.prisma.patientProfile.findFirst({
+                where:{
+                    email: email
+                },
+                include:{
+                    allergies: true,
+                }
+            });
+
+            return patient.allergies;
+        }
+
+        async Doc2(email: string): Promise<Doctor[]>{
+            console.log(email)
+            const patient = await this.prisma.patientProfile.findFirst({
+                where:{
+                    email:email
+                },
+                include:{
+                    doctors: true,
+                }
+            });
+
+            return patient.doctors; 
+        }
+
         async medications (id: number): Promise<Medication[]>{
             const patient = await this.prisma.patientProfile.findUnique({
                 where:{
@@ -81,6 +110,32 @@ export class ProfileService {
 
             return patient.medications;
         }
+
+        async medication (email: string): Promise<Medication[]>{
+            const patient = await this.prisma.patientProfile.findFirst({
+                where:{
+                    email: email
+                },
+                include:{
+                    medications: true,
+                }
+            });
+
+            return patient.medications;
+        }
+
+        async BasicP2(email: string): Promise<PatientProfile>{ 
+            console.log(email)
+            const usr = await this.prisma.patientProfile.findFirst({
+                where:{
+                   email: email
+                 } 
+               }) ;
+               console.log(usr)
+           
+   
+              return usr;
+        }
         
        
         async getMedicalFilesForPatientAndSpecialty(patientId: number, specialtyName: string): Promise<MedicalFile[]> {
@@ -92,6 +147,7 @@ export class ProfileService {
                 ],
               },
             });
+            console.log(medicalFiles)
             return medicalFiles;
           }
           
